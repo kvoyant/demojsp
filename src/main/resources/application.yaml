@@ -1,3 +1,13 @@
 spring:
   application:
     name: demojsp
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/demo_db02?useUnicode=true&allowMultiQueries=true&serverTimezone=UTC
+    username: yhkim
+    password: yhkim
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
