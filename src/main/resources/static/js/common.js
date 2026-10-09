@@ -9,60 +9,73 @@ var Common = {
      */
     ajax: function(options) {
         var defaults = {
-            type: 'POST',
-            contentType: 'application/json; charset=utf-8',
+            type: 'GET',
             dataType: 'json',
             showLoading: true,
             errorAlert: true
         };
 
         var settings = $.extend({}, defaults, options);
+        var httpMethod = settings.type ? settings.type.toUpperCase() : 'GET';
+
+        var ajaxOptions = {
+            url: settings.url,
+            type: httpMethod,
+            dataType: settings.dataType
+        };
+
+        if (httpMethod === 'GET' || httpMethod === 'HEAD') {
+            ajaxOptions.data = settings.data;
+        } else {
+            ajaxOptions.contentType = settings.contentType || 'application/json; charset=utf-8';
+            if (typeof settings.data === 'object' && settings.data !== null) {
+                ajaxOptions.data = JSON.stringify(settings.data);
+            } else {
+                ajaxOptions.data = settings.data;
+            }
+        }
 
         if (settings.showLoading) {
             Common.showLoading();
         }
 
-        return $.ajax({
-            url: settings.url,
-            type: settings.type,
-            contentType: settings.contentType,
-            data: typeof settings.data === 'object' ? JSON.stringify(settings.data) : settings.data,
-            dataType: settings.dataType,
-            success: function(res) {
-                if (settings.showLoading) Common.hideLoading();
+        ajaxOptions.success = function(res) {
+            if (settings.showLoading) Common.hideLoading();
 
-                if (res.success) {
-                    if (typeof settings.success === 'function') {
-                        settings.success(res.data, res);
-                    }
-                } else {
-                    if (settings.errorAlert) {
-                        alert(res.message || '처리 중 오류가 발생했습니다.');
-                    }
-                    if (typeof settings.fail === 'function') {
-                        settings.fail(res);
-                    }
+            if (res && res.success) {
+                if (typeof settings.success === 'function') {
+                    settings.success(res.data, res);
                 }
-            },
-            error: function(xhr, status, error) {
-                if (settings.showLoading) Common.hideLoading();
-
-                if (xhr.status === 401) {
-                    alert('세션이 만료되었습니다. 다시 로그인해 주세요.');
-                    location.href = '/login';
-                } else if (xhr.status === 403) {
-                    alert('해당 메뉴 또는 기능에 대한 접근 권한이 없습니다.');
-                } else {
-                    var errorRes = xhr.responseJSON;
-                    var msg = (errorRes && errorRes.message) ? errorRes.message : '시스템 오류가 발생했습니다. 관리자에게 문의하세요.';
-                    alert(msg);
+            } else {
+                if (settings.errorAlert) {
+                    alert((res && res.message) ? res.message : '처리 중 오류가 발생했습니다.');
                 }
-
-                if (typeof settings.error === 'function') {
-                    settings.error(xhr, status, error);
+                if (typeof settings.fail === 'function') {
+                    settings.fail(res);
                 }
             }
-        });
+        };
+
+        ajaxOptions.error = function(xhr, status, error) {
+            if (settings.showLoading) Common.hideLoading();
+
+            if (xhr.status === 401) {
+                alert('세션이 만료되었습니다. 다시 로그인해 주세요.');
+                location.href = '/login';
+            } else if (xhr.status === 403) {
+                alert('해당 메뉴 또는 기능에 대한 접근 권한이 없습니다.');
+            } else {
+                var errorRes = xhr.responseJSON;
+                var msg = (errorRes && errorRes.message) ? errorRes.message : '시스템 오류가 발생했습니다. 관리자에게 문의하세요.';
+                alert(msg);
+            }
+
+            if (typeof settings.error === 'function') {
+                settings.error(xhr, status, error);
+            }
+        };
+
+        return $.ajax(ajaxOptions);
     },
 
     /**
