@@ -8,6 +8,6 @@
 </head>
 <body>
     <h1>${message}</h1>
-    <p>Spring Boot + JSP Integration</p>
+    <p>Spring Boot + JSP Integration + git push test</p>
 </body>
 </html>
