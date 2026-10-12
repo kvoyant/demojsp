@@ -38,4 +38,13 @@ public class ApiResponse<T> {
                 .data(null)
                 .build();
     }
+
+    public static <T> ApiResponse<T> error(com.example.demojsp.common.exception.ErrorCode errorCode) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .data(null)
+                .build();
+    }
 }

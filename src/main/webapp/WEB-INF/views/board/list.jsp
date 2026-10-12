@@ -20,7 +20,8 @@
     </style>
 </head>
 <body>
-<div class="container mt-5">
+<jsp:include page="/WEB-INF/views/common/navbar.jsp" />
+<div class="container">
     <div class="card shadow-sm">
         <div class="card-header card-header-financial d-flex justify-content-between align-items-center py-3">
             <h4 class="mb-0">🏦 저축은행 소매금융 포털 게시판</h4>

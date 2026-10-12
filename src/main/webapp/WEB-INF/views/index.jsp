@@ -20,10 +20,11 @@
     </style>
 </head>
 <body>
-<div class="container py-5">
+<jsp:include page="/WEB-INF/views/common/navbar.jsp" />
+<div class="container pb-5">
     <div class="hero-banner shadow-sm text-center">
         <h2 class="fw-bold mb-2">🏦 저축은행 소매금융 포털 시스템</h2>
-        <p class="mb-0 opacity-75">공통업무 | 휴대폰 본인인증 NICE ID 도입 및 9/30 이기종 CI Data 통합 이관</p>
+        <p class="mb-0 opacity-75">공통업무 | 휴대폰 본인인증 NICE ID 도입 및 9/30 이기종 CI Data 통합 이관 & 로그인 정책(개인, 상담사, 권한)</p>
     </div>
 
     <div class="row g-4">
@@ -71,16 +72,44 @@
             </div>
         </div>
 
-        <!-- 3. 포털 게시판 -->
-        <div class="col-md-12">
-            <div class="card menu-card shadow-sm">
-                <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="fw-bold mb-1"><i class="bi bi-journal-text text-secondary me-2"></i>저축은행 소매금융 포털 게시판</h5>
-                        <p class="text-muted small mb-0">공지사항, 여신지침, 대출모집인 공지사항 조회 및 관리</p>
+        <!-- 3. 로그인 정책 (개인, 상담사, 권한 등) -->
+        <div class="col-md-6">
+            <div class="card menu-card shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fs-1 text-info"><i class="bi bi-person-badge-fill"></i></div>
+                        <span class="badge bg-primary px-3 py-2">보안 규정 준수</span>
                     </div>
-                    <a href="/board/list" class="btn btn-outline-dark fw-bold">
-                        게시판 바로가기 &rarr;
+                    <h4 class="fw-bold mb-2">로그인 정책 (개인 / 상담사 / 권한)</h4>
+                    <p class="text-muted small flex-grow-1">
+                        • <strong>개인 고객</strong>: 30분 세션, 5회 비밀번호 오류 잠금, NICE ID CI 간편 로그인<br>
+                        • <strong>대출 상담사</strong>: 15분 세션, 2차 추가인증(SMS OTP) 필수, 중복 로그인 차단<br>
+                        • <strong>심사역 / 관리자</strong>: 15분 세션, 2FA 필수, RBAC 권한 분리 통제<br>
+                        • <strong>전자금융 감사 로그</strong>: 시도 IP, User-Agent, 실패 사유 전수 영속화
+                    </p>
+                    <a href="/login" class="btn btn-primary fw-bold py-2 mt-3">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>로그인 화면 바로가기 &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 포털 게시판 -->
+        <div class="col-md-6">
+            <div class="card menu-card shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fs-1 text-secondary"><i class="bi bi-journal-text"></i></div>
+                        <span class="badge bg-secondary px-3 py-2">공지 & 지침</span>
+                    </div>
+                    <h4 class="fw-bold mb-2">소매금융 포털 게시판</h4>
+                    <p class="text-muted small flex-grow-1">
+                        • <strong>공지사항 및 여신지침</strong>: 실시간 금융 규정 및 업무 지침 공유<br>
+                        • <strong>대출모집인 전용 공지</strong>: 영업 채널 공지사항 및 Q&A<br>
+                        • <strong>권한 제어</strong>: 로그인 세션 및 사용자 역할 기반 게시글 열람 통제
+                    </p>
+                    <a href="/board/list" class="btn btn-outline-dark fw-bold py-2 mt-3">
+                        <i class="bi bi-card-list me-1"></i>게시판 바로가기 &rarr;
                     </a>
                 </div>
             </div>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demojsp.domain.login.mapper.MemberMapper">
+
+    <select id="selectMemberById" resultType="com.example.demojsp.domain.login.dto.MemberDto">
+        SELECT
+            MEMBER_ID,
+            MEMBER_TYPE,
+            ROLE_CD,
+            PASSWORD,
+            MEMBER_NM,
+            CELL_NO,
+            EMAIL,
+            CI_VAL,
+            LOGIN_FAIL_CNT,
+            LOCK_YN,
+            LAST_LOGIN_DT,
+            LAST_PW_MOD_DT,
+            USE_YN,
+            REG_DT
+        FROM TB_MEMBER
+        WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="selectMemberByCi" resultType="com.example.demojsp.domain.login.dto.MemberDto">
+        SELECT
+            MEMBER_ID,
+            MEMBER_TYPE,
+            ROLE_CD,
+            PASSWORD,
+            MEMBER_NM,
+            CELL_NO,
+            EMAIL,
+            CI_VAL,
+            LOGIN_FAIL_CNT,
+            LOCK_YN,
+            LAST_LOGIN_DT,
+            LAST_PW_MOD_DT,
+            USE_YN,
+            REG_DT
+        FROM TB_MEMBER
+        WHERE CI_VAL = #{ciVal}
+    </select>
+
+    <update id="updateLoginSuccess">
+        UPDATE TB_MEMBER
+        SET
+            LOGIN_FAIL_CNT = 0,
+            LOCK_YN = 'N',
+            LAST_LOGIN_DT = NOW()
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="increaseLoginFailCount">
+        UPDATE TB_MEMBER
+        SET
+            LOGIN_FAIL_CNT = LOGIN_FAIL_CNT + 1
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="lockMember">
+        UPDATE TB_MEMBER
+        SET
+            LOGIN_FAIL_CNT = 5,
+            LOCK_YN = 'Y'
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="unlockMember">
+        UPDATE TB_MEMBER
+        SET
+            LOGIN_FAIL_CNT = 0,
+            LOCK_YN = 'N'
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <insert id="insertMember">
+        INSERT INTO TB_MEMBER (
+            MEMBER_ID,
+            MEMBER_TYPE,
+            ROLE_CD,
+            PASSWORD,
+            MEMBER_NM,
+            CELL_NO,
+            EMAIL,
+            CI_VAL,
+            LOGIN_FAIL_CNT,
+            LOCK_YN,
+            LAST_LOGIN_DT,
+            LAST_PW_MOD_DT,
+            USE_YN,
+            REG_DT
+        ) VALUES (
+            #{memberId},
+            #{memberType},
+            #{roleCd},
+            #{password},
+            #{memberNm},
+            #{cellNo},
+            #{email},
+            #{ciVal},
+            0,
+            'N',
+            NOW(),
+            NOW(),
+            'Y',
+            NOW()
+        )
+    </insert>
+
+    <insert id="insertLoginLog" useGeneratedKeys="true" keyProperty="logSeq">
+        INSERT INTO TB_LOGIN_LOG (
+            MEMBER_ID,
+            MEMBER_TYPE,
+            LOGIN_METHOD,
+            LOGIN_SUCCESS_YN,
+            FAIL_REASON,
+            CLIENT_IP,
+            USER_AGENT,
+            LOGIN_DT
+        ) VALUES (
+            #{memberId},
+            #{memberType},
+            #{loginMethod},
+            #{loginSuccessYn},
+            #{failReason},
+            #{clientIp},
+            #{userAgent},
+            NOW()
+        )
+    </insert>
+
+</mapper>

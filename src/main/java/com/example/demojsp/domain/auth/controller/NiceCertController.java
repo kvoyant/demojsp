@@ -22,9 +22,10 @@ public class NiceCertController {
     }
 
     /**
-     * 9/30 이기종 CI 데이터 이관 관리 화면
+     * 9/30 이기종 CI 데이터 이관 관리 화면 (심사역/관리자 전용)
      */
     @GetMapping("/ci-migration")
+    @com.example.demojsp.common.annotation.RequireRole({"ROLE_ADMIN"})
     public String ciMigrationPage(Model model) {
         return "common/auth/ciMigration";
     }

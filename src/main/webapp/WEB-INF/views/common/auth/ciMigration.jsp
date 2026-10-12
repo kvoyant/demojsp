@@ -24,7 +24,8 @@
     </style>
 </head>
 <body>
-<div class="container-fluid py-4 px-md-5">
+<jsp:include page="/WEB-INF/views/common/navbar.jsp" />
+<div class="container-fluid pb-4 px-md-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold mb-1"><i class="bi bi-database-fill-gear text-primary me-2"></i>9/30 이기종 CI Data 이관 관리 및 모니터링</h3>
