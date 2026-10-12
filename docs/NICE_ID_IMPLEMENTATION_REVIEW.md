@@ -169,9 +169,58 @@ src/main/
 
 ### 🧪 검증된 JUnit 테스트 케이스 (전체 7건 통과 완료)
 1. `testGetActiveTermsList`: 비여신금융거래 본인확인 필수 약관 4종 조회
-2. `testRequestAndVerifyOtp_Normal`: 통신사 미지정 방식 인증번호 요청 및 88자 CI 발급 정상 완료
+2. `testRequestAndVerifyOtp_Normal`: 통신사 미지정 방식 인증번호 요청, TB_SMS_SEND_QUEUE 적재 및 88자 CI 발급 정상 완료
 3. `testMinorCheck`: 만 19세 미만 미성년자(만 14세) 감지 및 법정대리인 동의 안내 반환
 4. `testForeignerCheck`: 외국인 고객(`nationalInfo=2`) 감지 및 외국인등록증 실명확인 안내 반환
 5. `testWatchlistBlockedCheck`: CI 기반 유의고객(Watchlist/FDS) 식별 및 본인인증 거래 즉시 차단
 6. `testCiMigrationPipeline`: 9/30 이기종 CI 정합성 검증(88자, Base64, 중복제외) 및 운영 DB 이관 성공
 7. `DemojspApplicationTests`: 스프링 부트 컨텍스트 로딩 및 통합 환경 검증
+
+---
+
+## 7. 🔌 실제 NICE 모듈 및 SMS 모듈 연동 아키텍처 및 운영 전환 가이드
+
+### 7.1 실제 NICE 본인인증 모듈 연동 구조
+* **연동 클래스**: [`NiceApiClientImpl.java`](file:///Users/macbook/coding/server/demojsp/src/main/java/com/example/demojsp/domain/auth/client/NiceApiClientImpl.java), [`NiceCryptoUtil.java`](file:///Users/macbook/coding/server/demojsp/src/main/java/com/example/demojsp/domain/auth/client/NiceCryptoUtil.java)
+* **1단계 (통신사 미지정 OTP 요청)**:
+  * URL: `POST https://svc.niceapi.co.kr/service/v1/auth/carrier-unspecified/request`
+  * Header: `Authorization: Bearer {NICE_ACCESS_TOKEN}`, `client_id`, `product_id: 2101979001`
+  * Body: `carrier=""` (통신사 미지정)로 설정하여 AES-128-CBC 암호화(`enc_data`) 및 HMAC-SHA256(`integrity_value`) 전송.
+  * NICE 서버가 이통 3사 및 MVNO HLR 망과 통신하여 고객의 통신사를 자동 식별하고 인증 세션을 발급.
+* **2단계 (인증번호 검증 및 CI/DI 복호화 수신)**:
+  * URL: `POST https://svc.niceapi.co.kr/service/v1/auth/carrier-unspecified/verify`
+  * Body: `request_no`, `res_seq`, `auth_token`, `otp_code` 전송.
+  * NICE가 암호화하여 응답한 결과 전문을 복호화하여 **88자리 연계정보(CI)**, **64자리 DI**, **실명**, **생년월일**, **식별된 통신사(SKT/KT/LGT/MVNO)** 획득.
+* **레거시 CPClient 바이너리(JAR) 지원**:
+  * 구형 전용선 CPClient.jar 방식의 경우 `NiceCryptoUtil` 주석에 명시된 대로 `CPClient.fnEncode()`, `CPClient.fnDecode()`로 100% 치환 가능.
+
+### 7.2 실제 금융 SMS 발송 모듈 연동 구조
+* **연동 클래스**: [`SmsGatewayClientImpl.java`](file:///Users/macbook/coding/server/demojsp/src/main/java/com/example/demojsp/domain/auth/client/SmsGatewayClientImpl.java)
+* **방식 ① DB 테이블 큐 방식 (`TB_SMS_SEND_QUEUE`)**:
+  * 금융사 대표 발신번호(`1588-0000`), 수신번호, 6자리 OTP 인증번호 메시지 본문을 `TB_SMS_SEND_QUEUE`에 실시간 `INSERT`.
+  * 사내 기업 메시징 에이전트(FEP/Daemon)가 Polling하여 이통사 SMSC로 초당 대량 발송.
+* **방식 ② 중계사 REST API 방식**:
+  * HTTP POST `https://api.sms-gateway.bank.co.kr/v1/send` 호출하여 실시간 발송.
+
+### 7.3 상용 운영 전환 절차 (Going-Live Checklist)
+1. **NICE 계약 및 자격증명 설정**:
+   * NICE평가정보 계약 후 발급받은 `client-id`, `client-secret`, `product-id`를 `application.yaml`에 기입.
+2. **Mock-Mode 비활성화**:
+   ```yaml
+   nice:
+     api:
+       base-url: https://svc.niceapi.co.kr
+       client-id: {운영_발급_CLIENT_ID}
+       client-secret: {운영_발급_CLIENT_SECRET}
+       product-id: "2101979001"
+       mock-mode: false # ★ 운영 실서버 통신 활성화
+
+   sms:
+     gateway:
+       api-url: https://api.sms-gateway.bank.co.kr/v1/send
+       api-key: {운영_SMS_KEY}
+       sender-phone: "1588-0000"
+       mock-mode: false # ★ 실제 문자 발송 활성화
+   ```
+3. **네트워크 방화벽 및 전용선 오픈**:
+   * 대외계 NICE API IP(`svc.niceapi.co.kr:443`) 및 SMS 중계사 IP 아웃바운드 80/443 포트 오픈.

@@ -40,8 +40,11 @@ class NiceCertServiceTest {
         assertThat(terms).anyMatch(t -> "TERMS_TELCO_ALL".equals(t.getTermsId()));
     }
 
+    @Autowired
+    private com.example.demojsp.domain.auth.mapper.SmsQueueMapper smsQueueMapper;
+
     @Test
-    @DisplayName("통신사 미지정 방식 본인인증 번호 요청 및 검증 - 정상 고객")
+    @DisplayName("통신사 미지정 방식 본인인증 번호 요청 및 검증 - 정상 고객 (NICE 및 SMS 모듈 연동)")
     void testRequestAndVerifyOtp_Normal() {
         // 1. 요청 (통신사 파라미터 불필요)
         NiceCertReqDto req = NiceCertReqDto.builder()
@@ -59,7 +62,15 @@ class NiceCertServiceTest {
         String txSeq = (String) reqRes.get("reqTxSeq");
         String otpCode = (String) reqRes.get("testOtpCode");
 
-        // 2. 검증
+        // [SMS 모듈 연동 검증] TB_SMS_SEND_QUEUE 테이블 큐에 실시간 적재 여부 확인
+        var smsList = smsQueueMapper.selectSmsListByTxSeq(txSeq);
+        assertThat(smsList).isNotEmpty();
+        assertThat(smsList.get(0).getDestPhone()).isEqualTo("01012345678");
+        assertThat(smsList.get(0).getSendPhone()).isEqualTo("1588-0000");
+        assertThat(smsList.get(0).getSendStatus()).isEqualTo("SENT");
+        assertThat(smsList.get(0).getMsgBody()).contains(otpCode);
+
+        // 2. 검증 (NICE 모듈 접속 및 복호화된 CI 획득)
         NiceCertVerifyDto verifyDto = NiceCertVerifyDto.builder()
                 .reqTxSeq(txSeq)
                 .otpCode(otpCode)

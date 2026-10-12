@@ -21,3 +21,22 @@ mybatis:
   type-aliases-package: com.example.demojsp.domain
   configuration:
     map-underscore-to-camel-case: true
+
+# NICE평가정보 본인인증(통신사 미지정) 연동 설정
+nice:
+  api:
+    base-url: https://svc.niceapi.co.kr
+    client-id: NICE_CLIENT_ID_SAMPLE
+    client-secret: NICE_CLIENT_SECRET_SAMPLE
+    product-id: "2101979001"    # NICE 통신사 미지정 본인인증 표준 상품코드
+    site-code: "B123"           # NICE 사이트코드 (CPClient 모듈용)
+    site-password: "PASSWORD"   # NICE 사이트패스워드 (CPClient 모듈용)
+    mock-mode: true             # 테스트 환경: true (실제 연동망 연결 시 false로 전환)
+
+# 금융 SMS 발송 모듈 연동 설정
+sms:
+  gateway:
+    api-url: https://api.sms-gateway.bank.co.kr/v1/send
+    api-key: SMS_GW_KEY_SAMPLE
+    sender-phone: "1588-0000"   # 저축은행 대표 발신번호
+    mock-mode: true             # 테스트 환경: true (실제 중계사 REST/DB 발송 시 false로 전환)

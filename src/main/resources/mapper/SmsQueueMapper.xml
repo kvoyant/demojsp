@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demojsp.domain.auth.mapper.SmsQueueMapper">
+
+    <insert id="insertSmsQueue" useGeneratedKeys="true" keyProperty="smsSeq">
+        INSERT INTO TB_SMS_SEND_QUEUE (
+            DEST_PHONE,
+            SEND_PHONE,
+            MSG_BODY,
+            MSG_TYPE,
+            REQ_TX_SEQ,
+            SEND_STATUS,
+            EXT_RESULT_CODE,
+            REG_DT
+        ) VALUES (
+            #{destPhone},
+            #{sendPhone},
+            #{msgBody},
+            #{msgType},
+            #{reqTxSeq},
+            #{sendStatus},
+            #{extResultCode},
+            NOW()
+        )
+    </insert>
+
+    <update id="updateSmsStatus">
+        UPDATE TB_SMS_SEND_QUEUE
+        SET
+            SEND_STATUS = #{sendStatus},
+            EXT_RESULT_CODE = #{extResultCode},
+            SENT_DT = NOW()
+        WHERE SMS_SEQ = #{smsSeq}
+    </update>
+
+    <select id="selectSmsListByTxSeq" resultType="com.example.demojsp.domain.auth.client.dto.SmsQueueDto">
+        SELECT
+            SMS_SEQ,
+            DEST_PHONE,
+            SEND_PHONE,
+            MSG_BODY,
+            MSG_TYPE,
+            REQ_TX_SEQ,
+            SEND_STATUS,
+            EXT_RESULT_CODE,
+            REG_DT,
+            SENT_DT
+        FROM TB_SMS_SEND_QUEUE
+        WHERE REQ_TX_SEQ = #{reqTxSeq}
+        ORDER BY SMS_SEQ DESC
+    </select>
+
+</mapper>
