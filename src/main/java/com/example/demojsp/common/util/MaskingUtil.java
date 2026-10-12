@@ -55,4 +55,17 @@ public class MaskingUtil {
         }
         return accountNo;
     }
+
+    /**
+     * 연계정보 (CI 88자리) 마스킹
+     * 앞 12자리와 뒤 8자리를 제외하고 마스킹 처리
+     */
+    public static String maskCi(String ci) {
+        if (!StringUtils.hasText(ci)) return "";
+        int len = ci.length();
+        if (len > 24) {
+            return ci.substring(0, 12) + "****************************************" + ci.substring(len - 8);
+        }
+        return ci;
+    }
 }

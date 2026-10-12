@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demojsp.domain.auth.mapper.CiMigrationMapper">
+
+    <!-- 스테이징 테이블 조회 -->
+    <select id="selectTempList" resultType="com.example.demojsp.domain.auth.dto.CiMigrationDto$TempRecord">
+        SELECT
+            TEMP_SEQ,
+            LEGACY_SYSTEM_CD,
+            LEGACY_CUST_ID,
+            CUST_NM,
+            CI_VAL,
+            DI_VAL,
+            BIRTH_DATE,
+            GENDER,
+            NATIONAL_INFO,
+            CELL_NO,
+            RRN_HASH,
+            VALID_STATUS,
+            MIGRATION_STATUS,
+            ERROR_MSG,
+            SOURCE_EXTRACT_DT,
+            REG_DT
+        FROM TB_CI_MIGRATION_TEMP
+        <where>
+            <if test="validStatus != null and validStatus != ''">
+                AND VALID_STATUS = #{validStatus}
+            </if>
+            <if test="migrationStatus != null and migrationStatus != ''">
+                AND MIGRATION_STATUS = #{migrationStatus}
+            </if>
+        </where>
+        ORDER BY TEMP_SEQ ASC
+    </select>
+
+    <!-- 검증 상태 업데이트 -->
+    <update id="updateTempValidStatus">
+        UPDATE TB_CI_MIGRATION_TEMP
+        SET
+            VALID_STATUS = #{validStatus},
+            ERROR_MSG = #{errorMsg}
+        WHERE TEMP_SEQ = #{tempSeq}
+    </update>
+
+    <!-- 이관 상태 업데이트 -->
+    <update id="updateTempMigrationStatus">
+        UPDATE TB_CI_MIGRATION_TEMP
+        SET
+            MIGRATION_STATUS = #{migrationStatus}
+        WHERE TEMP_SEQ = #{tempSeq}
+    </update>
+
+    <!-- 기존 마스터 CI 등록 카운트 조회 -->
+    <select id="countExistingCustCi" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_CUST_CI
+        WHERE CI_VAL = #{ciVal}
+    </select>
+
+    <!-- 이관 실행 이력 등록 -->
+    <insert id="insertHistory" useGeneratedKeys="true" keyProperty="histSeq">
+        INSERT INTO TB_CI_MIGRATION_HISTORY (
+            BATCH_ID,
+            TOTAL_COUNT,
+            SUCCESS_COUNT,
+            DUPLICATE_COUNT,
+            FAIL_COUNT,
+            START_DT,
+            STATUS,
+            EXEC_BY
+        ) VALUES (
+            #{batchId},
+            #{totalCount},
+            #{successCount},
+            #{duplicateCount},
+            #{failCount},
+            NOW(),
+            #{status},
+            #{execBy}
+        )
+    </insert>
+
+    <!-- 이관 실행 이력 업데이트 -->
+    <update id="updateHistory">
+        UPDATE TB_CI_MIGRATION_HISTORY
+        SET
+            TOTAL_COUNT = #{totalCount},
+            SUCCESS_COUNT = #{successCount},
+            DUPLICATE_COUNT = #{duplicateCount},
+            FAIL_COUNT = #{failCount},
+            END_DT = NOW(),
+            STATUS = #{status}
+        WHERE HIST_SEQ = #{histSeq}
+    </update>
+
+    <!-- 이관 실행 이력 목록 조회 -->
+    <select id="selectHistoryList" resultType="com.example.demojsp.domain.auth.dto.CiMigrationDto$HistoryRecord">
+        SELECT
+            HIST_SEQ,
+            BATCH_ID,
+            TOTAL_COUNT,
+            SUCCESS_COUNT,
+            DUPLICATE_COUNT,
+            FAIL_COUNT,
+            START_DT,
+            END_DT,
+            STATUS,
+            EXEC_BY
+        FROM TB_CI_MIGRATION_HISTORY
+        ORDER BY HIST_SEQ DESC
+        LIMIT 20
+    </select>
+
+    <!-- 임시 데이터 초기화 -->
+    <delete id="clearTempRecords">
+        TRUNCATE TABLE TB_CI_MIGRATION_TEMP
+    </delete>
+
+    <!-- 샘플 임시 데이터 재적재 -->
+    <insert id="insertSampleTempData">
+        INSERT INTO TB_CI_MIGRATION_TEMP (LEGACY_SYSTEM_CD, LEGACY_CUST_ID, CUST_NM, CI_VAL, DI_VAL, BIRTH_DATE, GENDER, NATIONAL_INFO, CELL_NO, RRN_HASH, VALID_STATUS, MIGRATION_STATUS, SOURCE_EXTRACT_DT)
+        VALUES
+        ('LEGACY_CORE', 'LEG_00101', '김철수', '2trxaKUfB0CDWOJc8yi1lUlnxgJFZ3nLfzTkBtOml3C42pwmOwBS3N1k7gMoqk9liMzplbHqvlNpAd0b8YOj0w==', 'di_sample_mig_00101', '19850312', '1', '1', '01022223333', 'hash_850312_1xxxxxx', 'PENDING', 'READY', '2026-09-30'),
+        ('LEGACY_CORE', 'LEG_00102', '이영희', 'r+4QPLWLLwVU4lEeb54aKlPEQKUpMgDDhxt34/EAWq/XrDkvpk0HawfuwPRInQT3ONKaemM/10YhTh8gHdFmfg==', 'di_sample_mig_00102', '19920824', '2', '1', '01033334444', 'hash_920824_2xxxxxx', 'PENDING', 'READY', '2026-09-30'),
+        ('CRM_OLD', 'LEG_00103', '존스미스', 'CyJ4W+E1mbwaedIipwFs3ExLF00NlnHhdG/GmM4IvvGBg9OxaBwZLM1H3Wx08DHX/3/NV7xU4wIjv+kU37ngUg==', 'di_sample_mig_00103', '19881105', '1', '2', '01044445555', 'hash_881105_5xxxxxx', 'PENDING', 'READY', '2026-09-30'),
+        ('CRM_OLD', 'LEG_00104', '박지민', 'CXH7Qfq/dLFnHQ0Z78bwq6L5//L1xhBoPyAsw2YIuULlzsLvkuHpOlq/UqDvbLfbGmZvxwNHMmayzYDaqIuxQw==', 'di_sample_mig_00104', '19951210', '1', '1', '01055556666', 'hash_951210_1xxxxxx', 'PENDING', 'READY', '2026-09-30'),
+        ('EXTERNAL_AGENCY', 'LEG_00105', '최오류', 'INVALID_SHORT_CI_12345', 'di_sample_mig_00105', '19910101', '1', '1', '01066667777', 'hash_910101_1xxxxxx', 'PENDING', 'READY', '2026-09-30'),
+        ('EXTERNAL_AGENCY', 'LEG_00106', '김철수_중복', '2trxaKUfB0CDWOJc8yi1lUlnxgJFZ3nLfzTkBtOml3C42pwmOwBS3N1k7gMoqk9liMzplbHqvlNpAd0b8YOj0w==', 'di_sample_mig_00106', '19850312', '1', '1', '01022223333', 'hash_850312_1xxxxxx', 'PENDING', 'READY', '2026-09-30')
+    </insert>
+
+</mapper>

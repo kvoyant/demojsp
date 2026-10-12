@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demojsp.domain.auth.mapper.NiceAuthMapper">
+
+    <!-- 약관 목록 조회 -->
+    <select id="selectActiveTermsList" resultType="com.example.demojsp.domain.auth.dto.TermsDto">
+        SELECT
+            TERMS_ID,
+            TERMS_TITLE,
+            TERMS_VERSION,
+            REQUIRED_YN,
+            CATEGORY,
+            CONTENT,
+            SORT_ORDER,
+            USE_YN,
+            REG_DT
+        FROM TB_TERMS
+        WHERE USE_YN = 'Y'
+        ORDER BY SORT_ORDER ASC
+    </select>
+
+    <!-- 개별 약관 조회 -->
+    <select id="selectTermsById" resultType="com.example.demojsp.domain.auth.dto.TermsDto">
+        SELECT
+            TERMS_ID,
+            TERMS_TITLE,
+            TERMS_VERSION,
+            REQUIRED_YN,
+            CATEGORY,
+            CONTENT,
+            SORT_ORDER,
+            USE_YN,
+            REG_DT
+        FROM TB_TERMS
+        WHERE TERMS_ID = #{termsId}
+    </select>
+
+    <!-- 약관 동의 이력 저장 -->
+    <insert id="insertTermsAgreeLog">
+        INSERT INTO TB_TERMS_AGREE_LOG (
+            REQ_TX_SEQ,
+            TERMS_ID,
+            AGREE_YN,
+            AGREE_DT
+        ) VALUES (
+            #{reqTxSeq},
+            #{termsId},
+            #{agreeYn},
+            NOW()
+        )
+    </insert>
+
+    <!-- 본인인증 이력 등록 -->
+    <insert id="insertCertLog" useGeneratedKeys="true" keyProperty="certSeq">
+        INSERT INTO TB_CERT_LOG (
+            REQ_TX_SEQ,
+            CHANNEL_TYPE,
+            AUTH_METHOD,
+            CUST_NM,
+            BIRTH_DATE,
+            CELL_NO,
+            CI_VAL,
+            AUTH_TOKEN,
+            AUTH_STATUS,
+            ERR_CODE,
+            ERR_MSG,
+            CLIENT_IP,
+            USER_AGENT,
+            REQ_DT
+        ) VALUES (
+            #{reqTxSeq},
+            #{channelType},
+            #{authMethod},
+            #{custNm},
+            #{birthDate},
+            #{cellNo},
+            #{ciVal},
+            #{authToken},
+            #{authStatus},
+            #{errCode},
+            #{errMsg},
+            #{clientIp},
+            #{userAgent},
+            NOW()
+        )
+    </insert>
+
+    <!-- 본인인증 이력 업데이트 -->
+    <update id="updateCertLog">
+        UPDATE TB_CERT_LOG
+        SET
+            AUTH_STATUS = #{authStatus},
+            CI_VAL = #{ciVal},
+            ERR_CODE = #{errCode},
+            ERR_MSG = #{errMsg},
+            RES_DT = NOW()
+        WHERE REQ_TX_SEQ = #{reqTxSeq}
+    </update>
+
+    <!-- 트랜잭션별 인증 이력 조회 -->
+    <select id="selectCertLogByTxSeq" resultType="com.example.demojsp.domain.auth.dto.CertLogDto">
+        SELECT
+            CERT_SEQ,
+            REQ_TX_SEQ,
+            CHANNEL_TYPE,
+            AUTH_METHOD,
+            CUST_NM,
+            BIRTH_DATE,
+            CELL_NO,
+            CI_VAL,
+            AUTH_TOKEN,
+            AUTH_STATUS,
+            ERR_CODE,
+            ERR_MSG,
+            CLIENT_IP,
+            USER_AGENT,
+            REQ_DT,
+            RES_DT
+        FROM TB_CERT_LOG
+        WHERE REQ_TX_SEQ = #{reqTxSeq}
+    </select>
+
+    <!-- 유의고객 조회 (CI 기반) -->
+    <select id="selectWatchlistByCi" resultType="com.example.demojsp.domain.auth.dto.WatchlistDto">
+        SELECT
+            WATCH_SEQ,
+            CI_VAL,
+            CUST_NM,
+            RISK_GRADE,
+            RISK_TYPE,
+            RISK_REASON,
+            BLOCK_YN,
+            REG_DT,
+            REG_USER_ID
+        FROM TB_WATCHLIST
+        WHERE CI_VAL = #{ciVal}
+    </select>
+
+    <!-- 고객 CI 조회 -->
+    <select id="selectCustCiByCi" resultType="com.example.demojsp.domain.auth.dto.CustCiDto">
+        SELECT
+            CI_VAL,
+            DI_VAL,
+            CUST_ID,
+            CUST_NM,
+            BIRTH_DATE,
+            GENDER,
+            NATIONAL_INFO,
+            CELL_NO,
+            REG_DT,
+            MOD_DT
+        FROM TB_CUST_CI
+        WHERE CI_VAL = #{ciVal}
+    </select>
+
+    <!-- 고객 CI 등록 또는 수정 (Upsert) -->
+    <insert id="insertOrUpdateCustCi">
+        INSERT INTO TB_CUST_CI (
+            CI_VAL,
+            DI_VAL,
+            CUST_ID,
+            CUST_NM,
+            BIRTH_DATE,
+            GENDER,
+            NATIONAL_INFO,
+            CELL_NO,
+            REG_DT,
+            MOD_DT
+        ) VALUES (
+            #{ciVal},
+            #{diVal},
+            #{custId},
+            #{custNm},
+            #{birthDate},
+            #{gender},
+            #{nationalInfo},
+            #{cellNo},
+            NOW(),
+            NOW()
+        )
+        ON DUPLICATE KEY UPDATE
+            DI_VAL = VALUES(DI_VAL),
+            CUST_NM = VALUES(CUST_NM),
+            BIRTH_DATE = VALUES(BIRTH_DATE),
+            GENDER = VALUES(GENDER),
+            NATIONAL_INFO = VALUES(NATIONAL_INFO),
+            CELL_NO = VALUES(CELL_NO),
+            MOD_DT = NOW()
+    </insert>
+
+</mapper>
