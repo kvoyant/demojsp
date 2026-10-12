@@ -30,6 +30,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException e) {
+        log.debug("Resource not found: {}", e.getResourcePath());
+        ApiResponse<Void> response = ApiResponse.error(ErrorCode.ENTITY_NOT_FOUND.getCode(), "요청한 리소스를 찾을 수 없습니다: " + e.getResourcePath());
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("Unhandled Exception: {}", e.getMessage(), e);
