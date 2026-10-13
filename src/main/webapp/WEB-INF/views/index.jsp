@@ -94,7 +94,34 @@
             </div>
         </div>
 
-        <!-- 4. 포털 게시판 -->
+        <!-- 4. 공통 본인확인 : 1원 계좌인증 (REQ-AP-605) -->
+        <div class="col-md-6">
+            <div class="card menu-card shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fs-1 text-warning"><i class="bi bi-coin"></i></div>
+                        <span class="badge bg-warning text-dark px-3 py-2 fw-bold">REQ-AP-605 신규</span>
+                    </div>
+                    <h4 class="fw-bold mb-2">1원 계좌인증 (본인확인)</h4>
+                    <p class="text-muted small flex-grow-1">
+                        • <strong>화면 분리 운영</strong>: 대출신청 연계 목적 화면과 타 업무 공통 화면 분리<br>
+                        • <strong>대출계좌 자동완성</strong>: 대출금입금/출금계좌 정보를 불러와 자동완성 처리<br>
+                        • <strong>계좌 변경/수정기능</strong>: 은행/계좌 선택 및 직접 수정 기능 제공<br>
+                        • <strong>1원 펌뱅킹 이체 & 검증</strong>: 입금자명 4자리 인증코드(10분 유효, 5회 잠금)
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="/common/auth/account-cert?purpose=LOAN_APPLY" class="btn btn-warning fw-bold flex-fill py-2 text-dark">
+                            <i class="bi bi-file-earmark-check me-1"></i>대출연계 모드 &rarr;
+                        </a>
+                        <a href="/common/auth/account-cert?purpose=COMMON" class="btn btn-outline-secondary fw-bold flex-fill py-2">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>공통업무 모드 &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 포털 게시판 -->
         <div class="col-md-6">
             <div class="card menu-card shadow-sm h-100">
                 <div class="card-body p-4 d-flex flex-column">

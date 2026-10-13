@@ -37,7 +37,17 @@ public enum ErrorCode {
     LOGIN_TWO_FACTOR_MISMATCH(400, "U005", "2차 인증번호가 일치하지 않습니다. 다시 확인해 주세요."),
     LOGIN_ACCESS_DENIED(403, "U006", "해당 메뉴 또는 기능에 대한 접근 권한이 없습니다."),
     SESSION_EXPIRED(401, "U007", "세션이 만료되었습니다. 다시 로그인해 주세요."),
-    CONCURRENT_LOGIN_BLOCKED(401, "U008", "다른 기기 또는 브라우저에서 로그인하여 현재 접속이 종료되었습니다.");
+    CONCURRENT_LOGIN_BLOCKED(401, "U008", "다른 기기 또는 브라우저에서 로그인하여 현재 접속이 종료되었습니다."),
+
+    // 1원 계좌인증 (본인확인) 오류 (REQ-AP-605)
+    ACCOUNT_NOT_FOUND(400, "AC01", "계좌번호가 유효하지 않거나 존재하지 않는 계좌입니다."),
+    ACCOUNT_HOLDER_MISMATCH(400, "AC02", "예금주명이 본인 실명과 일치하지 않습니다. 본인 명의 계좌만 인증 가능합니다."),
+    ACCOUNT_STATUS_INVALID(400, "AC03", "입금이 제한된 계좌(거래정지, 압류, 해지 등)입니다. 다른 계좌를 입력해 주세요."),
+    ACCOUNT_TRANSFER_FAILED(500, "AC04", "타행 1원 송금 처리 중 통신 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
+    ACCOUNT_AUTH_EXPIRED(400, "AC05", "1원 계좌인증 유효시간(10분)이 만료되었습니다. 다시 요청해 주세요."),
+    ACCOUNT_AUTH_MISMATCH(400, "AC06", "인증코드(숫자 4자리)가 일치하지 않습니다."),
+    ACCOUNT_AUTH_FAIL_LIMIT(400, "AC07", "인증코드 5회 연속 오류로 해당 인증이 취소되었습니다. 1원 송금을 다시 요청해 주세요."),
+    LOAN_ACCOUNT_NOT_FOUND(400, "AC08", "대출신청 계좌 정보가 존재하지 않습니다.");
 
     private final int status;
     private final String code;
