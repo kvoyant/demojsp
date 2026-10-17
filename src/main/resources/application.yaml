@@ -40,3 +40,40 @@ sms:
     api-key: SMS_GW_KEY_SAMPLE
     sender-phone: "1588-0000"   # 저축은행 대표 발신번호
     mock-mode: true             # 테스트 환경: true (실제 중계사 REST/DB 발송 시 false로 전환)
+
+# =============================================================================
+# [CF-BC-03] 본인인증 공통모듈 (com.example.demojsp.common.identity)
+#  - 기존 NICE 구현 설정(nice.api.*)과 별개. 서로 영향 없음.
+#  - client-secret 등 비밀값은 커밋하지 말고 환경변수로 주입: ${NICE_ID_CLIENT_SECRET}
+#  - 샘플 화면: http://localhost:8080/common/identity/sample
+# =============================================================================
+common:
+  identity:
+    base-url: ${IDENTITY_BASE_URL:http://localhost:8080}   # 콜백 URL 생성 기준 (운영: 외부 도메인)
+    callback-path: /common/identity/callback
+    tx-ttl: 10m           # 인증창 열고 완료까지 허용시간
+    result-ttl: 30m       # 인증 완료 후 업무 처리까지 허용시간
+    allowed-return-url-prefixes:
+      - /                 # 같은 도메인 상대경로만 허용 (APP 딥링크 사용 시 myapp:// 추가)
+    mock-enabled: true    # 로컬: true (NICE 없이 즉시 인증) / 실연동: false
+    # 인증수단별 약관 (약관 상세보기 / 필수동의 서버 재검증). content-url 은 실제 약관 페이지로 교체
+    terms:
+      NICE_MOBILE:
+        - { code: NICE_PRIVACY,    title: "개인정보 수집·이용 동의",   required: true, version: "1.0", content-url: "/terms/identity/nice-privacy" }
+        - { code: NICE_UNIQUE_ID,  title: "고유식별정보 처리 동의",     required: true, version: "1.0", content-url: "/terms/identity/nice-unique-id" }
+        - { code: NICE_SERVICE,    title: "본인확인서비스 이용약관",    required: true, version: "1.0", content-url: "/terms/identity/nice-service" }
+        - { code: NICE_CARRIER,    title: "통신사 이용약관 동의",       required: true, version: "1.0", content-url: "/terms/identity/nice-carrier" }
+        - { code: NICE_NON_CREDIT, title: "비여신금융거래 약관",        required: true, version: "1.0", content-url: "/terms/identity/nice-non-credit" }
+    nice:
+      client-id: ${NICE_ID_CLIENT_ID:}
+      client-secret: ${NICE_ID_CLIENT_SECRET:}
+      product-id: ${NICE_ID_PRODUCT_ID:}
+      access-token: ${NICE_ID_ACCESS_TOKEN:}   # 미리 발급받은 기관토큰 (없으면 최초 호출 시 발급)
+      api-base-url: https://svc.niceapi.co.kr:22001
+      checkplus-url: https://nice.checkplus.co.kr/CheckPlusSafeModel/service.cb
+      auth-type: M
+      method-type: get                         # post 사용 시 세션쿠키 SameSite=None; Secure 필요
+      connect-timeout: 3s
+      read-timeout: 5s
+      # 통신사 미지정 / MO인증 결합 등 상품 옵션 → NICE 가 안내한 파라미터명·값을 그대로 기입
+      extra-request-params: {}
