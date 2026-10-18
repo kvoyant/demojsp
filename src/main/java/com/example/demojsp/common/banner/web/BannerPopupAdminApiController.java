@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * <pre>
  *  GET    /api/common/banner-admin/codes                       배너팝업구분 / 공지유형 / 채널 코드
- *  GET    /api/common/banner-admin/popups                      목록 (게시상태, 중복게시 건수, 표시순서 중복 여부)
+ *  GET    /api/common/banner-admin/popups?popupType=TOP_SLIDE  목록 (구분 필터 선택, 게시상태, 중복게시 건수, 표시순서 중복 여부)
  *  GET    /api/common/banner-admin/popups/{id}                 상세
  *  POST   /api/common/banner-admin/popups                      등록
  *  PUT    /api/common/banner-admin/popups/{id}                 수정
@@ -59,9 +59,10 @@ public class BannerPopupAdminApiController {
     }
 
     @GetMapping("/popups")
-    public ApiResponse<List<BannerPopupAdminView>> list(HttpServletRequest request) {
+    public ApiResponse<List<BannerPopupAdminView>> list(@RequestParam(value = "popupType", required = false) String popupType,
+                                                        HttpServletRequest request) {
         context.requireAdmin(request);
-        return ApiResponse.success(bannerPopupService.adminList());
+        return ApiResponse.success(bannerPopupService.adminList(popupType));
     }
 
     @GetMapping("/popups/{id}")

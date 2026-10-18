@@ -19,6 +19,7 @@ import java.util.List;
  * @param endAt        게시 종료일시 (필수, 시작보다 늦어야 함)
  * @param displayOrder 표시순서 (필수, 1~999)
  * @param use          사용여부 (생략 시 true)
+ * @param backgroundColor 배경 색상 #RRGGBB (상단슬라이드배너. 생략 시 기본 배경색)
  */
 public record BannerPopupRequest(
         String popupType,
@@ -32,6 +33,7 @@ public record BannerPopupRequest(
         String startAt,
         String endAt,
         Integer displayOrder,
-        Boolean use
+        Boolean use,
+        String backgroundColor
 ) {
 }

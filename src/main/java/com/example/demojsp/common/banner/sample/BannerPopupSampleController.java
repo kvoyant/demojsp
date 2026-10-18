@@ -20,4 +20,13 @@ public class BannerPopupSampleController {
     public String page() {
         return "common/banner/sample";
     }
+
+    /**
+     * [공통#44] 홈 상단슬라이드배너 샘플 (WEB-INF/views/common/banner/top-slide.jsp).
+     * <p>APP 홈 JSP 에서는 {@code TopSlideBanner.mount('#topSlide', { channel: 'APP', onIneligible: ... })} 한 줄.
+     */
+    @GetMapping("/common/banner/top-slide")
+    public String topSlide() {
+        return "common/banner/top-slide";
+    }
 }

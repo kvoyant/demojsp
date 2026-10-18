@@ -20,6 +20,7 @@ import java.util.List;
  * @param imageUrl     이미지 URL (선택)
  * @param altText      이미지 대체텍스트 (이미지가 있으면 필수 - 접근성 CF-UI-02)
  * @param linkUrl      [자세히 보기] 이동 URL (선택)
+ * @param backgroundColor 배경 색상 #RRGGBB (상단슬라이드배너, 공통#45 "배경 색상 선택". 배너팝업은 null)
  * @param startAt      게시 시작일시 (포함)
  * @param endAt        게시 종료일시 (미포함)
  * @param displayOrder 표시순서 (1 이 가장 먼저)
@@ -39,6 +40,7 @@ public record BannerPopup(
         String imageUrl,
         String altText,
         String linkUrl,
+        String backgroundColor,
         LocalDateTime startAt,
         LocalDateTime endAt,
         int displayOrder,
@@ -67,9 +69,14 @@ public record BannerPopup(
         return !at.isBefore(startAt) && at.isBefore(endAt);
     }
 
-    /** 기준시각·채널에 고객에게 노출 대상인지 */
+    /** 기준시각·채널에 고객에게 노출 대상인지 (배너팝업구분 무관 - 호출부에서 구분별로 거른다) */
     public boolean displayableAt(LocalDateTime at, BannerChannel channel) {
         return use && channels.contains(channel) && inPeriod(at);
+    }
+
+    /** 같은 구분·기준시각·채널에 노출 대상인지 */
+    public boolean displayableAt(LocalDateTime at, BannerChannel channel, BannerPopupType type) {
+        return popupType == type && displayableAt(at, channel);
     }
 
     /** 두 배너의 게시기간이 겹치는지 */

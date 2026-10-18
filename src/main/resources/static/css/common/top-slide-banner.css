@@ -1,0 +1,137 @@
+/*
+ * =============================================================================
+ *  [CF-BC-20 / 공통#44] 홈 상단슬라이드배너  -  /css/common/top-slide-banner.css   (ui-tokens.css 먼저 로드)
+ * -----------------------------------------------------------------------------
+ *  홈 상단 흐름 안에 놓이는 배너 (팝업 아님). 배경색은 배너별(ADMIN), 글자색은 서버가 대비 높은 색을 골라 준다.
+ *  구조: [메인텍스트 / 서브텍스트            상품이미지]
+ *        [                       ❚❚ 01/05 ]  ← 하단 Indicator (2건 이상)
+ *  접두어 ui-tsb → Bootstrap·기존 화면 CSS 와 충돌 없음
+ * =============================================================================
+ */
+.ui-tsb {
+    position: relative;
+    font-family: var(--ui-font);
+    border-radius: var(--ui-radius-lg);
+    overflow: hidden;
+    background: var(--ui-primary-soft);
+    -webkit-user-select: none;
+    user-select: none;
+}
+.ui-tsb__viewport { overflow: hidden; touch-action: pan-y; }   /* 세로 스크롤은 브라우저, 가로 스와이프는 배너 */
+.ui-tsb__track {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transition: transform 360ms var(--ui-ease);
+    will-change: transform;
+}
+.ui-tsb.is-dragging .ui-tsb__track,
+.ui-tsb-reduced .ui-tsb__track { transition: none; }
+
+.ui-tsb__slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    background: var(--ui-primary-soft);
+    color: var(--ui-text);
+}
+.ui-tsb__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 112px;
+    padding: 18px 18px 30px;          /* 아래 Indicator 자리 */
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-drag: none;
+}
+.ui-tsb:not(.is-multi) .ui-tsb__link { padding-bottom: 18px; }
+a.ui-tsb__link:focus { outline: none; }
+a.ui-tsb__link:focus-visible { box-shadow: inset 0 0 0 3px #1d70e8; border-radius: var(--ui-radius-lg); }
+a.ui-tsb__link:active { filter: brightness(.97); }
+
+.ui-tsb__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ui-tsb__main {
+    font-size: var(--ui-fs-lg);
+    font-weight: 800;
+    line-height: var(--ui-lh-tight);
+    word-break: keep-all;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+.ui-tsb__sub {
+    font-size: var(--ui-fs-sm);
+    line-height: var(--ui-lh-tight);
+    opacity: .9;                      /* 대비 4.5:1 유지 범위 (서버가 고른 글자색 기준) */
+    word-break: keep-all;
+    display: -webkit-box;            /* 상품명·조건이 잘리지 않게 최대 2줄 */
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+.ui-tsb__img { flex: 0 0 auto; width: 72px; height: 72px; object-fit: contain; pointer-events: none; }
+
+/* ---- 하단 Indicator: 일시정지/재생 + 01/05 */
+.ui-tsb__indicator {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 24px;
+    padding: 0 10px 0 2px;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, .55);
+    color: #fff;
+    font-size: var(--ui-fs-xs);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+}
+.ui-tsb__count { opacity: .85; }
+.ui-tsb__current { font-weight: 700; opacity: 1; }
+.ui-tsb__toggle {
+    position: relative;
+    width: 28px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+/* 터치 영역 44px 확보 (보이는 크기는 작게) */
+.ui-tsb__toggle::before { content: ""; position: absolute; inset: -10px -8px; }
+.ui-tsb__toggle:focus { outline: none; }
+.ui-tsb__toggle:focus-visible { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1d70e8; }
+/* 아이콘: 재생 중 = 일시정지(❚❚), 멈춤 = 재생(▶) */
+.ui-tsb__toggle-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 9px;
+    transform: translate(-50%, -50%);
+    border-left: 2.5px solid currentColor;
+    border-right: 2.5px solid currentColor;
+    box-sizing: border-box;
+}
+.ui-tsb__toggle.is-paused .ui-tsb__toggle-icon {
+    width: 0;
+    height: 0;
+    border-left: 8px solid currentColor;
+    border-right: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    transform: translate(-35%, -50%);
+}
+
+@media (max-width: 320px) {
+    .ui-tsb__img { width: 56px; height: 56px; }
+    .ui-tsb__main { font-size: var(--ui-fs-md); }
+}

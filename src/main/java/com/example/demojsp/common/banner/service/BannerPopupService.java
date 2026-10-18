@@ -9,6 +9,9 @@ import com.example.demojsp.common.banner.domain.BannerPopupAdminView;
 import com.example.demojsp.common.banner.domain.BannerPopupRequest;
 import com.example.demojsp.common.banner.domain.BannerPopupType;
 import com.example.demojsp.common.banner.domain.BannerPopupView;
+import com.example.demojsp.common.banner.domain.TopSlideBannerList;
+import com.example.demojsp.common.banner.domain.TopSlideBannerView;
+import com.example.demojsp.common.banner.spi.AccountHoldingChecker;
 import com.example.demojsp.common.banner.exception.BannerErrorCode;
 import com.example.demojsp.common.banner.exception.BannerException;
 import com.example.demojsp.common.banner.store.BannerPopupRepository;
@@ -63,18 +66,30 @@ public class BannerPopupService {
     public static final String STATUS_END = "게시종료";
     public static final String STATUS_OFF = "미사용";
 
+    public static final String AUDIENCE_NO_ACCOUNT = "NO_ACCOUNT";
+    public static final String AUDIENCE_ACCOUNT_HOLDER = "ACCOUNT_HOLDER";
+
     private final BannerPopupRepository repository;
     private final BannerPopupProperties properties;
+    private final AccountHoldingChecker accountHoldingChecker;
     private final Clock clock;
 
     @Autowired
-    public BannerPopupService(BannerPopupRepository repository, BannerPopupProperties properties) {
-        this(repository, properties, Clock.systemDefaultZone());
+    public BannerPopupService(BannerPopupRepository repository, BannerPopupProperties properties,
+                              AccountHoldingChecker accountHoldingChecker) {
+        this(repository, properties, accountHoldingChecker, Clock.systemDefaultZone());
     }
 
+    /** 테스트용 (계좌 보유 확인 없이 - 상단슬라이드배너는 모두 계좌 미보유로 간주) */
     public BannerPopupService(BannerPopupRepository repository, BannerPopupProperties properties, Clock clock) {
+        this(repository, properties, customerId -> false, clock);
+    }
+
+    public BannerPopupService(BannerPopupRepository repository, BannerPopupProperties properties,
+                              AccountHoldingChecker accountHoldingChecker, Clock clock) {
         this.repository = repository;
         this.properties = properties;
+        this.accountHoldingChecker = accountHoldingChecker;
         this.clock = clock;
         // 메모리 저장소일 때만 seed 적재 (DB 구현체에는 운영 데이터가 있으므로 넣지 않는다)
         if (repository instanceof InMemoryBannerPopupRepository && repository.findAll().isEmpty()) {
@@ -96,7 +111,7 @@ public class BannerPopupService {
     public BannerDisplayList displayable(String channel, LocalDateTime at) {
         BannerChannel ch = parseChannel(channel);
         List<BannerPopup> targets = repository.findAll().stream()
-                .filter(b -> b.displayableAt(at, ch))
+                .filter(b -> b.displayableAt(at, ch, BannerPopupType.BANNER_POPUP))   // 상단슬라이드배너 제외
                 .sorted(BannerPopup.DISPLAY_ORDER)
                 .toList();
 
@@ -111,15 +126,67 @@ public class BannerPopupService {
         return new BannerDisplayList(ch.name(), BannerSupport.formatFull(at), items.size(), items.size() >= 2, truncated, items);
     }
 
+    // ------------------------------------------------------------------ 홈 상단슬라이드배너 (공통#44)
+
+    /** 현재 시각 기준 상단슬라이드배너 */
+    public TopSlideBannerList topSlides(String channel, String customerId) {
+        return topSlides(channel, customerId, LocalDateTime.now(clock));
+    }
+
+    /**
+     * 홈 상단슬라이드배너 (기존 메인 "슬라이드 배너팝업" 대체).
+     * <ol>
+     *   <li>정책1 제공대상: 계좌 미보유 사용자 → 계좌 보유 고객은 eligible=false, 배너 없음 (같은 영역에 계좌정보)</li>
+     *   <li>정책2 배너노출기간: 시작 포함 ~ 종료 미포함 (YYYY-MM-DD 00:00:00 ~ YYYY-MM-DD 00:00:00)</li>
+     *   <li>기능1 최대 5건 (표시순서 상위), 기능2 자동 슬라이딩 간격 2초 → 응답에 함께 내려 화면이 설정값을 따르게 한다</li>
+     * </ol>
+     */
+    public TopSlideBannerList topSlides(String channel, String customerId, LocalDateTime at) {
+        BannerChannel ch = parseChannel(channel);
+        BannerPopupProperties.TopSlide cfg = properties.getTopSlide();
+        if (accountHoldingChecker.hasAccount(customerId)) {
+            return new TopSlideBannerList(ch.name(), BannerSupport.formatFull(at), false, AUDIENCE_ACCOUNT_HOLDER,
+                    0, cfg.getMaxCount(), cfg.getIntervalMs(), 0, List.of());
+        }
+        List<BannerPopup> targets = repository.findAll().stream()
+                .filter(b -> b.displayableAt(at, ch, BannerPopupType.TOP_SLIDE))
+                .sorted(BannerPopup.DISPLAY_ORDER)
+                .toList();
+        int max = cfg.getMaxCount();
+        int truncated = 0;
+        if (max > 0 && targets.size() > max) {
+            truncated = targets.size() - max;
+            targets = targets.subList(0, max);
+        }
+        List<TopSlideBannerView> items = targets.stream().map(b -> {
+            String bg = b.backgroundColor() != null ? b.backgroundColor() : cfg.getDefaultBackgroundColor();
+            return new TopSlideBannerView(b.id(), b.title(), b.content(), b.imageUrl(), b.altText(), b.linkUrl(),
+                    bg, BannerSupport.readableTextColor(bg), b.displayOrder());
+        }).toList();
+        return new TopSlideBannerList(ch.name(), BannerSupport.formatFull(at), true, AUDIENCE_NO_ACCOUNT,
+                items.size(), max, cfg.getIntervalMs(), truncated, items);
+    }
+
     // ------------------------------------------------------------------ ADMIN
 
-    /** ADMIN 배너팝업목록 (게시상태·중복게시 정보 포함). 정렬: 게시중 → 게시예정 → 미사용 → 게시종료, 같은 상태 안에서는 표시순서 */
+    /** ADMIN 배너팝업목록 (전체 구분) */
     public List<BannerPopupAdminView> adminList() {
+        return adminList(null);
+    }
+
+    /**
+     * ADMIN 배너팝업목록 (게시상태·중복게시 정보 포함). 정렬: 게시중 → 게시예정 → 미사용 → 게시종료, 같은 상태 안에서는 표시순서
+     *
+     * @param popupType 배너팝업구분 필터 (null/공백 = 전체)
+     */
+    public List<BannerPopupAdminView> adminList(String popupType) {
         LocalDateTime now = LocalDateTime.now(clock);
+        BannerPopupType type = popupType == null || popupType.isBlank() ? null
+                : parseEnum(BannerPopupType.class, popupType, "배너팝업구분");
         List<BannerPopup> all = repository.findAll();
         List<BannerPopupAdminView> rows = new ArrayList<>();
         for (BannerPopup b : all) {
-            rows.add(toAdminView(b, all, now));
+            if (type == null || b.popupType() == type) rows.add(toAdminView(b, all, now));
         }
         List<String> statusOrder = List.of(STATUS_ON, STATUS_READY, STATUS_OFF, STATUS_END);
         rows.sort(Comparator.<BannerPopupAdminView>comparingInt(r -> statusOrder.indexOf(r.status()))
@@ -156,7 +223,7 @@ public class BannerPopupService {
     public BannerPopupAdminView changeUse(long id, boolean use, String adminId) {
         BannerPopup o = find(id);
         BannerPopup b = new BannerPopup(o.id(), o.popupType(), o.category(), o.channels(), o.title(), o.content(),
-                o.imageUrl(), o.altText(), o.linkUrl(), o.startAt(), o.endAt(), o.displayOrder(), use,
+                o.imageUrl(), o.altText(), o.linkUrl(), o.backgroundColor(), o.startAt(), o.endAt(), o.displayOrder(), use,
                 o.registeredAt(), o.registeredBy(), LocalDateTime.now(clock), adminId);
         repository.save(b);
         audit.info("[배너팝업 사용여부] id={} use={} by={}", id, use, adminId);
@@ -195,7 +262,8 @@ public class BannerPopupService {
         int overlap = 0;
         boolean orderConflict = false;
         for (BannerPopup o : all) {
-            if (o.id() != b.id() && o.use() && o.channelOverlaps(b) && o.periodOverlaps(b)) {
+            // 같은 구분끼리만 겹침 계산 (배너팝업과 상단슬라이드배너는 노출 영역이 다르다)
+            if (o.id() != b.id() && o.popupType() == b.popupType() && o.use() && o.channelOverlaps(b) && o.periodOverlaps(b)) {
                 overlap++;
                 orderConflict |= o.displayOrder() == b.displayOrder();
             }
@@ -257,6 +325,12 @@ public class BannerPopupService {
         if (linkUrl != null && !BannerSupport.isSafeUrl(linkUrl)) {
             throw new BannerException(BannerErrorCode.INVALID_URL, "링크 URL");
         }
+        // 배경 색상: 화면 style 에 들어가므로 #RRGGBB 만 허용 (CSS 주입 차단). 배너팝업은 사용하지 않는다
+        String bgColor = BannerSupport.trimToNull(req.backgroundColor());
+        if (bgColor != null && !BannerSupport.isHexColor(bgColor)) {
+            throw new BannerException(BannerErrorCode.INVALID_COLOR, "배경 색상");
+        }
+        bgColor = type == BannerPopupType.TOP_SLIDE && bgColor != null ? bgColor.toUpperCase(Locale.ROOT) : null;
 
         LocalDateTime start = BannerSupport.parse(req.startAt(), "게시 시작일시");
         LocalDateTime end = BannerSupport.parse(req.endAt(), "게시 종료일시");
@@ -273,7 +347,7 @@ public class BannerPopupService {
         boolean use = req.use() == null || req.use();
 
         return new BannerPopup(id, type, category, List.copyOf(channels), title, content, imageUrl, altText, linkUrl,
-                start, end, order, use, registeredAt, registeredBy, updatedAt, updatedBy);
+                bgColor, start, end, order, use, registeredAt, registeredBy, updatedAt, updatedBy);
     }
 
     private static String required(String value, String field, int max) {
@@ -302,7 +376,7 @@ public class BannerPopupService {
                     : BannerSupport.format(today.plusDays(s.getEndDayOffset() == null ? 7 : s.getEndDayOffset()));
             BannerPopupRequest req = new BannerPopupRequest(s.getPopupType(), s.getCategory(), s.getChannels(),
                     s.getTitle(), s.getContent(), s.getImageUrl(), s.getAltText(), s.getLinkUrl(),
-                    start, end, s.getDisplayOrder(), s.isUse());
+                    start, end, s.getDisplayOrder(), s.isUse(), s.getBackgroundColor());
             try {
                 repository.save(validate(req, repository.nextId(), now, "SYSTEM", now, "SYSTEM"));
             } catch (BannerException e) {

@@ -268,6 +268,25 @@ common:
         display-order: 4
         use: false
 
+      # =========================================================================
+      # [공통#44] 홈 상단슬라이드배너 (popup-type: TOP_SLIDE) - 계좌 미보유 대상, 최대 5건, 2초 롤링
+      #  title = 상품소개 메인텍스트, content = 서브텍스트, background-color = 배경 색상(#RRGGBB)
+      #  게시중 6건 → 표시순서 상위 5건만 노출 / 1건은 게시예정
+      # =========================================================================
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "3분이면 끝나는 한도조회", content: "페퍼스마트대출 · 신용점수 영향 없이 확인", image-url: /images/common/banner/slide-loan.svg, alt-text: "대출 카드와 동전 그림", link-url: /product/loan/PS_SMART, background-color: "#E3ECFA", start-day-offset: -2, end-day-offset: 30, display-order: 1 }
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "하루만 맡겨도 이자가 쌓여요", content: "페퍼스 파킹통장4 · 수시입출금", image-url: /images/common/banner/slide-parking.svg, alt-text: "파킹통장 그림", link-url: /product/deposit/PS_PARKING4, background-color: "#FFF4E0", start-day-offset: -2, end-day-offset: 30, display-order: 2 }
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "2030을 위한 높은 금리 적금", content: "페퍼스 2030적금 · 매월 자유롭게 저축", image-url: /images/common/banner/slide-savings.svg, alt-text: "쌓여 있는 동전 그림", link-url: /product/deposit/PS_2030, background-color: "#0D47A1", start-day-offset: -1, end-day-offset: 30, display-order: 3 }
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "사업자도 담보로 든든하게", content: "페퍼스 사업자담보대출 · 상담 신청", image-url: /images/common/banner/slide-biz.svg, alt-text: "건물 그림", link-url: /product/loan/PS_BIZ_MORTGAGE, background-color: "#E6F4EA", start-day-offset: -1, end-day-offset: 30, display-order: 4 }
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "기간 한정 예금 특판", content: "정기예금 금리우대 · 한도 소진 시 종료", image-url: /images/common/banner/slide-deposit.svg, alt-text: "예금 통장 그림", link-url: /product/deposit/SPECIAL, background-color: "#FDECEA", start-day-offset: 0, end-day-offset: 14, display-order: 5 }
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "[6번째] 최대 5건 초과 - 미노출", content: "표시순서 6 → 노출 제외", background-color: "#F3F4F6", start-day-offset: 0, end-day-offset: 14, display-order: 6 }
+      - { popup-type: TOP_SLIDE, category: EVENT, title: "[게시예정] 연말 이벤트", content: "게시기간 전 - 미노출", background-color: "#FFFFFF", start-day-offset: 5, end-day-offset: 30, display-order: 1 }
+    top-slide:
+      max-count: 5                # 기능1 최대 5건
+      interval-ms: 2000           # 기능2 자동 슬라이딩 2초
+      default-background-color: "#E3ECFA"
+      demo-customer-param: true   # local 테스트 전용! 운영: false (로그인 세션 고객만)
+      account-holders: [customer01]   # local 흉내: 계좌 보유 고객 (운영은 계좌원장 조회 구현체로 교체)
+
 # =============================================================================
 # [CF-BC-13 / 공통#43] 이어하기 공통모듈 (com.example.demojsp.common.resume)
 #  - 홈(ALL) / 저축(DEPOSIT, 공통#49) / 대출(LOAN, 공통#60) 이 같은 API·카드를 scope 로 공유
@@ -420,3 +439,20 @@ common:
           - { label: "샘플 화면", url: "/common/resume/sample", type: PAGE }
           - { label: "홈 이어하기 API", url: "/api/common/resume?scope=ALL", type: API }
           - { label: "신청현황조회", url: "/common/resume/status", type: PAGE }
+      - cf-id: CF-BC-20
+        req-id: 공통#44
+        title: 홈 - 상단슬라이드배너 (계좌 미보유 · 최대 5건 · 2초 롤링)
+        category: 공통 요구사항 > 홈 - 상단슬라이드배너
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP]
+        features:
+          - "기존 메인 슬라이드 배너팝업 대체 - 상품소개 배너를 홈 상단에 롤링 (팝업 아님)"
+          - "제공대상 계좌 미보유(비로그인 포함), 계좌 보유 회원은 같은 영역에 계좌정보 / 배너노출기간 시작 포함~종료 미포함"
+          - "최대 5건(표시순서 상위), 2초 자동 슬라이딩, 2~4건이면 빈 슬롯·인디케이터 숨김, 1건이면 고정"
+          - "구조: 메인텍스트 + 서브텍스트 + 배너 수 01/05, 인디케이터 자동 변경, 일시정지/재생, 스와이프, 배경색별 글자색 자동 대비"
+        guide: docs/COMMON_TOP_SLIDE_BANNER_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/banner/top-slide", type: PAGE }
+          - { label: "APP 노출 API", url: "/api/common/top-slide-banners?channel=APP", type: API }
+          - { label: "계좌 보유 고객(미노출)", url: "/api/common/top-slide-banners?channel=APP&demoCustomer=customer01", type: API }

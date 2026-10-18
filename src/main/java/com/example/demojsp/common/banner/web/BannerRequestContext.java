@@ -39,6 +39,24 @@ public class BannerRequestContext {
         throw new BannerException(BannerErrorCode.ADMIN_ONLY);
     }
 
+    /**
+     * 상단슬라이드배너 대상 판단용 고객 ID (비로그인 = null).
+     * <p>로그인 세션 우선. 비로그인이고 {@code top-slide.demo-customer-param=true}(local)일 때만 {@code demoCustomer} 파라미터 사용.
+     */
+    public String customerIdOrNull(HttpServletRequest request) {
+        UserSessionDto user = loginUser(request);
+        if (user != null) {
+            return user.getMemberId();
+        }
+        if (properties.getTopSlide().isDemoCustomerParam()) {
+            String demo = request.getParameter("demoCustomer");
+            if (demo != null && demo.matches("^[A-Za-z0-9_]{1,30}$")) {
+                return demo;
+            }
+        }
+        return null;
+    }
+
     private static UserSessionDto loginUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {

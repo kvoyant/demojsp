@@ -31,12 +31,47 @@ public class BannerPopupProperties {
     /** 초기 배너 데이터 (InMemoryBannerPopupRepository 가 기동 시 적재) */
     private List<Seed> seed = new ArrayList<>();
 
+    /** 홈 상단슬라이드배너 (공통#44) */
+    private TopSlide topSlide = new TopSlide();
+
     public boolean isAdminApiOpen() { return adminApiOpen; }
     public void setAdminApiOpen(boolean adminApiOpen) { this.adminApiOpen = adminApiOpen; }
     public int getMaxDisplayCount() { return maxDisplayCount; }
     public void setMaxDisplayCount(int maxDisplayCount) { this.maxDisplayCount = maxDisplayCount; }
     public List<Seed> getSeed() { return seed; }
     public void setSeed(List<Seed> seed) { this.seed = seed; }
+    public TopSlide getTopSlide() { return topSlide; }
+    public void setTopSlide(TopSlide topSlide) { this.topSlide = topSlide; }
+
+    /**
+     * 홈 상단슬라이드배너 설정 (공통#44).
+     */
+    public static class TopSlide {
+        /** 최대 노출 건수 (기능1: 최대 5건) */
+        private int maxCount = 5;
+        /** 자동 슬라이딩 간격 ms (기능2: 2초) */
+        private int intervalMs = 2000;
+        /** 배경색 미지정 시 기본값 */
+        private String defaultBackgroundColor = "#E3ECFA";
+        /**
+         * 비로그인 시 {@code demoCustomer} 파라미터로 고객을 바꿔 조회 허용 (<b>local 전용</b>, 운영 false).
+         * 로그인 세션이 있으면 항상 세션 고객을 쓴다.
+         */
+        private boolean demoCustomerParam = false;
+        /** 계좌 보유 고객 (ConfigAccountHoldingChecker local 흉내용) */
+        private List<String> accountHolders = new ArrayList<>();
+
+        public int getMaxCount() { return maxCount; }
+        public void setMaxCount(int maxCount) { this.maxCount = maxCount; }
+        public int getIntervalMs() { return intervalMs; }
+        public void setIntervalMs(int intervalMs) { this.intervalMs = intervalMs; }
+        public String getDefaultBackgroundColor() { return defaultBackgroundColor; }
+        public void setDefaultBackgroundColor(String defaultBackgroundColor) { this.defaultBackgroundColor = defaultBackgroundColor; }
+        public boolean isDemoCustomerParam() { return demoCustomerParam; }
+        public void setDemoCustomerParam(boolean demoCustomerParam) { this.demoCustomerParam = demoCustomerParam; }
+        public List<String> getAccountHolders() { return accountHolders; }
+        public void setAccountHolders(List<String> accountHolders) { this.accountHolders = accountHolders; }
+    }
 
     /**
      * 배너 1건 초기 데이터.
@@ -52,6 +87,7 @@ public class BannerPopupProperties {
         private String imageUrl;
         private String altText;
         private String linkUrl;
+        private String backgroundColor;
         private Integer startDayOffset;
         private Integer endDayOffset;
         private String startAt;
@@ -75,6 +111,8 @@ public class BannerPopupProperties {
         public void setAltText(String altText) { this.altText = altText; }
         public String getLinkUrl() { return linkUrl; }
         public void setLinkUrl(String linkUrl) { this.linkUrl = linkUrl; }
+        public String getBackgroundColor() { return backgroundColor; }
+        public void setBackgroundColor(String backgroundColor) { this.backgroundColor = backgroundColor; }
         public Integer getStartDayOffset() { return startDayOffset; }
         public void setStartDayOffset(Integer startDayOffset) { this.startDayOffset = startDayOffset; }
         public Integer getEndDayOffset() { return endDayOffset; }

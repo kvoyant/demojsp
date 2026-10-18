@@ -272,7 +272,7 @@
 
     // 3) ADMIN 목록
     function loadList() {
-        api('/api/common/banner-admin/popups').then(function (res) {
+        api('/api/common/banner-admin/popups?popupType=BANNER_POPUP').then(function (res) {
             var tb = $('rows'); tb.innerHTML = '';
             if (!res.success) { var tr = el('tr'); var td = el('td', 'text-danger', res.code + ' ' + res.message); td.colSpan = 9; tr.appendChild(td); tb.appendChild(tr); return; }
             res.data.forEach(function (b) {

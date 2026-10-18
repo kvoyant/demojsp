@@ -18,6 +18,7 @@ import java.util.List;
  * @param imageUrl       이미지 URL
  * @param altText        대체텍스트
  * @param linkUrl        링크 URL
+ * @param backgroundColor 배경 색상 (상단슬라이드배너)
  * @param startAt        게시 시작 (yyyy-MM-dd HH:mm)
  * @param endAt          게시 종료 (yyyy-MM-dd HH:mm)
  * @param displayOrder   표시순서
@@ -42,6 +43,7 @@ public record BannerPopupAdminView(
         String imageUrl,
         String altText,
         String linkUrl,
+        String backgroundColor,
         String startAt,
         String endAt,
         int displayOrder,
@@ -59,7 +61,7 @@ public record BannerPopupAdminView(
         return new BannerPopupAdminView(b.id(), b.popupType().name(), b.popupType().getLabel(),
                 b.category().name(), b.category().getLabel(),
                 b.channels().stream().map(Enum::name).toList(),
-                b.title(), b.content(), b.imageUrl(), b.altText(), b.linkUrl(),
+                b.title(), b.content(), b.imageUrl(), b.altText(), b.linkUrl(), b.backgroundColor(),
                 BannerSupport.format(b.startAt()), BannerSupport.format(b.endAt()),
                 b.displayOrder(), b.use(), status, overlapCount, orderConflict,
                 BannerSupport.formatFull(b.registeredAt()), b.registeredBy(),

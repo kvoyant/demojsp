@@ -19,6 +19,7 @@ public enum BannerErrorCode {
     ALT_TEXT_REQUIRED(HttpStatus.BAD_REQUEST, "BNR-105", "이미지를 등록하면 대체텍스트를 반드시 입력해야 합니다."),
     TOO_LONG(HttpStatus.BAD_REQUEST, "BNR-106", "입력 가능한 글자 수를 초과했습니다."),
     INVALID_CODE(HttpStatus.BAD_REQUEST, "BNR-107", "배너팝업구분/공지유형 값이 올바르지 않습니다."),
+    INVALID_COLOR(HttpStatus.BAD_REQUEST, "BNR-108", "배경 색상은 #RRGGBB 형식으로 입력해 주세요."),
 
     ADMIN_ONLY(HttpStatus.FORBIDDEN, "BNR-401", "배너팝업 관리 권한이 없습니다.");
 
