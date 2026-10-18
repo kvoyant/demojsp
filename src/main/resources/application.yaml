@@ -323,3 +323,20 @@ common:
           - { label: "샘플 화면", url: "/common/banner/sample", type: PAGE }
           - { label: "APP 노출 API", url: "/api/common/banner-popups?channel=APP", type: API }
           - { label: "배너팝업목록(ADMIN)", url: "/api/common/banner-admin/popups", type: API }
+      - cf-id: CF-UI-01
+        req-id: 공통#40
+        title: Button 공통 컴포넌트 (press 효과 · 진행 중 상태)
+        category: 공통 요구사항 > Button
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP, PC WEB, 모집인WEB, ADMIN]
+        features:
+          - MAIN 버튼(대출 신청하기·가입하기) 색상 대비 4.5:1 이상, 누름 시 진한 색 + 축소 + 안쪽 그림자 + 물결
+          - 업무 실행 중 / 페이지 이동 중 표시 (스피너 + 문구 + 진행 막대, 화면 상단 이동 표시줄)
+          - 진행 중 재클릭·폼 재제출 차단 (이중 신청·이중 이체 방지), 뒤로가기 복원 시 자동 해제
+          - 터치 기기 즉시 press 반응, 키보드 포커스 링, 스크린리더 "처리 중" 안내, 움직임 줄이기 설정 대응
+        guide: docs/COMMON_UI_COMPONENT_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/ui/button", type: PAGE }
+          - { label: "Button CSS", url: "/css/common/ui-button.css", type: PAGE }
+          - { label: "Button JS", url: "/js/common/ui-button.js", type: PAGE }

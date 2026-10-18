@@ -1,0 +1,73 @@
+/*
+ * =============================================================================
+ *  [CF-UI-01] 공통 UI 디자인 토큰  -  /css/common/ui-tokens.css
+ * -----------------------------------------------------------------------------
+ *  Button(공통#40) · Icon(공통#41) · Alert(공통#42) 공통 컴포넌트가 함께 쓰는 색상·타이포·간격 값.
+ *  채널(APP / PC WEB / 모집인WEB / ADMIN)별로 값을 복사하지 말고 이 파일만 참조한다.
+ *  (Figma 확정본이 나오면 이 파일의 값만 교체 - 컴포넌트 CSS 는 수정하지 않는다)
+ *
+ *  색상 대비: 본문/버튼 글자는 배경 대비 4.5:1 이상 (KWCAG 2.2 / WCAG 2.1 AA)
+ *    --ui-primary #0d47a1 on #fff  ≈ 8.6 : 1     --ui-on-primary #fff on --ui-primary-press ≈ 11 : 1
+ *    --ui-danger  #c62828 on #fff  ≈ 5.6 : 1     --ui-text-sub  #4b5563 on #fff ≈ 7.6 : 1
+ *    --ui-success #1b7a3d on #fff  ≈ 5.4 : 1     --ui-warning   #b45309 on #fff ≈ 5.0 : 1
+ *  접두어 ui- 를 사용해 Bootstrap(.btn 등) / 기존 화면 CSS 와 충돌하지 않는다.
+ * =============================================================================
+ */
+:root {
+    /* ---- Brand / Action */
+    --ui-primary: #0d47a1;
+    --ui-primary-hover: #0b3d8c;
+    --ui-primary-press: #082f6c;
+    --ui-primary-soft: #e3ecfa;
+    --ui-primary-soft-press: #c9daf5;
+    --ui-on-primary: #ffffff;
+
+    /* ---- Text */
+    --ui-text: #111827;
+    --ui-text-sub: #4b5563;
+    --ui-text-disabled: #566070;    /* --ui-disabled-bg 위 ≈ 5.1:1 (비활성도 읽을 수 있게) */
+
+    /* ---- Surface / Line */
+    --ui-surface: #ffffff;
+    --ui-surface-sub: #f3f4f6;
+    --ui-surface-press: #e5e7eb;
+    --ui-line: #d1d5db;
+    --ui-line-strong: #9ca3af;
+    --ui-disabled-bg: #e5e7eb;
+    --ui-dim: rgba(17, 24, 39, .56);
+
+    /* ---- Status (성공 / 실패 / 주의 / 안내) - 아이콘 · Alert 공통 */
+    --ui-success: #1b7a3d;
+    --ui-success-soft: #e6f4ea;
+    --ui-error: #c62828;
+    --ui-error-soft: #fdecea;
+    --ui-warning: #b45309;      /* 주황 글자 대비 확보(#fff 대비 ≈ 5.0:1). 노랑(#f5a623) 은 글자색으로 쓰지 않는다 */
+    --ui-warning-soft: #fff4e0;
+    --ui-info: #0d47a1;
+    --ui-info-soft: #e3ecfa;
+    --ui-danger: #c62828;
+    --ui-danger-hover: #b71c1c;
+    --ui-danger-press: #8e1515;
+
+    /* ---- Focus (키보드 사용자 - 접근성 CF-UI-02) */
+    --ui-focus-ring: 0 0 0 3px #ffffff, 0 0 0 5px #1d70e8;
+
+    /* ---- Typography (rem 단위: 사용자 글자크기 설정 / 200% 확대 대응) */
+    --ui-font: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --ui-fs-xs: .75rem;     /* 12 */
+    --ui-fs-sm: .875rem;    /* 14 */
+    --ui-fs-md: 1rem;       /* 16 */
+    --ui-fs-lg: 1.0625rem;  /* 17 */
+    --ui-fs-xl: 1.125rem;   /* 18 */
+    --ui-lh-tight: 1.35;
+    --ui-lh-body: 1.6;
+
+    /* ---- Shape / Motion */
+    --ui-radius-sm: 6px;
+    --ui-radius-md: 10px;
+    --ui-radius-lg: 16px;
+    --ui-shadow-pop: 0 16px 48px rgba(17, 24, 39, .24);
+    --ui-ease: cubic-bezier(.2, .8, .2, 1);
+    --ui-dur-press: 80ms;
+    --ui-dur: 180ms;
+}
