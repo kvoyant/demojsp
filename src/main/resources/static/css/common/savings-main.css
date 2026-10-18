@@ -1,0 +1,11 @@
+/*
+ * =============================================================================
+ *  [공통#51] 저축 - 메인 콘텐츠  -  /css/common/savings-main.css   (ui-tokens.css, ui-button.css 먼저 로드)
+ *  구조: 큰 문구 2줄 + 일러스트 (본문)  /  [계좌 개설하기] 하단 상시 버튼 (.ui-cta-bar - 공통#40)
+ * =============================================================================
+ */
+.ui-svm { font-family: var(--ui-font); padding: 28px 20px 16px; text-align: center; color: var(--ui-text); }
+.ui-svm__title { margin: 0 0 20px; font-size: 1.5rem; font-weight: 800; line-height: 1.35; letter-spacing: -.01em; word-break: keep-all; }
+.ui-svm__line:last-child { color: var(--ui-primary); }
+.ui-svm__img { display: block; width: min(240px, 72%); height: auto; margin: 0 auto; }
+.ui-svm__cta { padding-top: 12px; }

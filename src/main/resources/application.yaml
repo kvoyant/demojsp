@@ -387,6 +387,19 @@ common:
       - { code: PS_AUTO,         kind: LOAN,    sub-type: 오토대출,   name: 페퍼스 오토론,         summary: "판매중지 상품 (홈 노출 제외 예시)", rate-text: "-",             icon: auto-loan, detail-url: /product/loan/PS_AUTO,         on-sale: false, home-display: false }
 
 # =============================================================================
+# [공통#51] 저축 탭 메인 콘텐츠 (com.example.demojsp.common.savings) - 계좌 미보유 대상
+#  [계좌 개설하기] → 상품 원장(common.product)의 입출금통장 상품안내페이지 (ADMIN 변경 자동 반영)
+# =============================================================================
+  savings:
+    main:
+      lines: ["매일 쌓이는 이자", "모으는 재미가 쏠쏠"]
+      image-url: /images/common/savings/main-coins.svg
+      image-alt: "통장에 동전이 쌓이는 그림"
+      cta-text: 계좌 개설하기
+      product-code: PS_PARKING4     # 입출금통장 (페퍼스 파킹통장4)
+      fallback-url: /product/deposit
+
+# =============================================================================
 # 공통모듈 테스트 허브 - http://localhost:8080/common/test-hub
 #  요구사항이 추가되면 아래 items 에 블록만 추가하면 목록에 나타난다.
 # =============================================================================
@@ -628,3 +641,20 @@ common:
         links:
           - { label: "저축 탭 샘플", url: "/common/savings/sample", type: PAGE }
           - { label: "건수 API", url: "/api/common/resume/counts", type: API }
+      - cf-id: CF-BC-20
+        req-id: 공통#51
+        title: 저축 - 메인 콘텐츠 (계좌 미보유 · 계좌 개설하기 하단 상시)
+        category: 공통 요구사항 > 저축 - 메인 콘텐츠
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP]
+        features:
+          - "제공대상 계좌 미보유 모든 사용자, 로그인 전/후 같은 화면 (계좌 보유 고객은 같은 자리에 계좌정보)"
+          - "구조: 텍스트(매일 쌓이는 이자 / 모으는 재미가 쏠쏠) + 이미지 + 버튼"
+          - "[계좌 개설하기] 하단 상시 노출(스크롤해도 고정, press·이동 중 표시) → 입출금통장 상품안내페이지"
+          - "버튼 URL 은 상품 원장(공통#48 ADMIN) 입출금통장 URL 연동, 판매중지 시 대체 URL"
+        guide: docs/COMMON_SAVINGS_TAB_GUIDE.md
+        links:
+          - { label: "저축 탭 샘플", url: "/common/savings/sample", type: PAGE }
+          - { label: "저축 메인 API", url: "/api/common/savings/main", type: API }
+          - { label: "계좌 보유(미노출)", url: "/api/common/savings/main?demoCustomer=customer01", type: API }

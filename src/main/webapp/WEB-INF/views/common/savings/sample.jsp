@@ -6,6 +6,8 @@
                              업무 화면은 ResumeCard.mount('#resumeCard', { scope: 'DEPOSIT' }) 한 줄
    공통#50 이어하기 툴팁   : 하단 '저축' 탭 숫자 배지 - 홈/저축/대출 어느 탭에서든 표시, 0건·취소 시 숨김
                              업무 화면은 BottomNav.mount('#bottomNav', { active: 'SAVINGS' }) 한 줄
+   공통#51 저축 메인 콘텐츠 : 계좌 미보유 - 텍스트 + 이미지 + [계좌 개설하기] 하단 상시 (계좌 보유 - 계좌정보)
+                             업무 화면은 SavingsMain.mount('#savingsMain', { cta: '#savingsCta' }) 한 줄
    주의: JSP 에서는 JS 템플릿 문자열의 달러+중괄호가 EL 로 해석되므로 문자열 더하기를 사용한다.
   =============================================================================
 --%>
@@ -25,10 +27,12 @@
     <link rel="stylesheet" href="/css/common/ui-alert.css">
     <link rel="stylesheet" href="/css/common/resume-card.css">
     <link rel="stylesheet" href="/css/common/bottom-nav.css">
+    <link rel="stylesheet" href="/css/common/savings-main.css">
     <script src="/js/common/ui-button.js"></script>
     <script src="/js/common/ui-alert.js"></script>
     <script src="/js/common/resume-card.js"></script>
     <script src="/js/common/bottom-nav.js"></script>
+    <script src="/js/common/savings-main.js"></script>
     <style>
         body { background-color: #f4f6f9; font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif; }
         [hidden] { display: none !important; }
@@ -42,6 +46,12 @@
         #resumeCard { margin-top: 12px; }
         .phone-sec { background: #fff; border-radius: 16px; margin: 12px; padding: 14px; font-size: 13px; color: #6b7280; }
         .phone-nav { flex: 0 0 auto; }
+        .phone-cta { flex: 0 0 auto; }                    /* 본문 밖 → 스크롤해도 탭바 위에 항상 보임 */
+        .phone-cta .ui-cta-bar { position: static; background: #fff; border-top: 1px solid #eef0f3; padding: 10px 14px; }
+        .acct { background: #fff; border-radius: 16px; margin: 12px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .acct small { color: #6b7280; }
+        .acct .amt { font-size: 22px; font-weight: 800; }
+        .phone-sec-wide { height: 260px; }
     </style>
 </head>
 <body>
@@ -50,13 +60,15 @@
 <div class="container-xl pb-5">
     <div class="d-flex align-items-center mb-3">
         <a href="/common/test-hub" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-arrow-left"></i> 테스트 목록</a>
-        <h5 class="fw-bold mb-0">[공통#49·50] APP 저축 탭</h5>
+        <h5 class="fw-bold mb-0">[공통#49·50·51] APP 저축 탭</h5>
     </div>
     <div class="alert alert-info small py-2">
         <b>공통#49 저축 - 이어하기</b>: 저축 탭 상단에 <b>수신상품</b> 이어하기 중 최신 1건 + 건수 + [더보기](신청현황조회) + [이어하기].
         로고는 당행 로고(수신상품은 당행 상품만). 홈 이어하기(공통#43)와 같은 카드 컴포넌트를 <code>scope: 'DEPOSIT'</code> 으로 재사용합니다.<br>
         <b>공통#50 이어하기 툴팁</b>: 수신 이어하기가 있으면 하단 <b>'저축' 탭에 숫자</b>(진행 중 건수). 현재 탭이 홈·저축·대출 어디든 표시되고,
-        진행 건이 없거나 취소로 남은 건이 없으면 사라집니다. 목업 하단 탭을 눌러 이동해 보세요.
+        진행 건이 없거나 취소로 남은 건이 없으면 사라집니다. 목업 하단 탭을 눌러 이동해 보세요.<br>
+        <b>공통#51 저축 메인 콘텐츠</b>: <b>계좌 미보유</b> 고객(로그인 전·후 같은 화면)에게 "매일 쌓이는 이자 / 모으는 재미가 쏠쏠" + 이미지 +
+        <b>[계좌 개설하기]</b>(하단 상시, 입출금통장 상품안내페이지). 계좌 보유 고객은 같은 자리에 계좌정보.
     </div>
 
     <div class="row g-4">
@@ -69,8 +81,17 @@
                         <div class="phone-body" id="phoneBody">
                             <!-- ★ 공통#49 저축 이어하기 (수신 0건이면 자리 차지 안 함) -->
                             <div class="phone-slot"><div id="resumeCard"></div></div>
-                            <div class="phone-sec" id="mainPlaceholder">저축 메인 콘텐츠 영역</div>
+                            <!-- ★ 공통#51 저축 메인 콘텐츠 (계좌 미보유) / 계좌정보 (계좌 보유) -->
+                            <div id="savingsMain"></div>
+                            <div id="accountInfo" class="acct" hidden>
+                                <small>입출금 · 페퍼스 파킹통장4</small>
+                                <div class="amt">1,234,567원</div>
+                                <small>계좌 보유 고객 - 저축 메인 콘텐츠 대신 계좌정보</small>
+                            </div>
+                            <div id="otherTab" class="phone-sec phone-sec-wide" hidden>탭 본문 영역</div>
                         </div>
+                        <!-- 공통#51 [계좌 개설하기] 하단 상시 (본문 스크롤과 무관) -->
+                        <div class="phone-cta" id="savingsCta" hidden></div>
                         <!-- ★ 공통#50 하단 탭바 + 저축 탭 툴팁 -->
                         <nav class="phone-nav" id="bottomNav"></nav>
                     </div>
@@ -82,8 +103,8 @@
                 <div class="card-header fw-bold"><i class="bi bi-person-gear me-1"></i> 고객 (local 테스트)</div>
                 <div class="card-body">
                     <select id="customer" class="form-select form-select-sm">
-                        <option value="customer01">customer01 - 수신 이어하기 2건 (+ 여신 2건은 저축 탭 제외) · 계좌 보유</option>
-                        <option value="customer02">customer02 - 수신 이어하기 1건 · 계좌 미보유</option>
+                        <option value="customer01">customer01 - 수신 이어하기 2건 (+ 여신 2건은 저축 탭 제외) · 계좌 보유 → 계좌정보</option>
+                        <option value="customer02" selected>customer02 - 수신 이어하기 1건 · 계좌 미보유 → 저축 메인 콘텐츠</option>
                         <option value="customer03">customer03 - 이어하기 없음 · 계좌 미보유</option>
                     </select>
                     <div id="info" class="small mt-2">-</div>
@@ -136,12 +157,25 @@
     // 공통#49 - 업무 화면은 이 한 줄 (params 는 local 샘플 전용)
     function loadResume() {
         $('phoneTitle').textContent = TAB[active].title;
-        $('mainPlaceholder').hidden = active !== 'SAVINGS';
+        loadMain();
         return ResumeCard.mount('#resumeCard', {
             scope: TAB[active].scope,
             params: { demoCustomer: customer() },
             onLoad: function (s) { log(s); $('info').textContent = TAB[active].title + ' 탭 이어하기 ' + s.count + '건 (수신 ' + s.counts.DEPOSIT + ' · 여신 ' + s.counts.LOAN + ')'; },
             onError: function (e) { log(e.response || String(e)); }
+        });
+    }
+
+    // 공통#51 - 업무 화면은 SavingsMain.mount('#savingsMain', { cta: '#savingsCta' }) (params·onNavigate 는 샘플 전용)
+    function loadMain() {
+        $('accountInfo').hidden = true;
+        $('otherTab').hidden = active === 'SAVINGS';
+        if (active !== 'SAVINGS') { $('savingsMain').hidden = true; $('savingsCta').hidden = true; return Promise.resolve(); }
+        return SavingsMain.mount('#savingsMain', {
+            cta: '#savingsCta',
+            params: { demoCustomer: customer() },
+            onNavigate: function (url) { log('[계좌 개설하기] 이동 URL: ' + url + '\n(샘플에서는 이동하지 않고 표시만 합니다)'); document.querySelectorAll('#savingsCta .ui-btn').forEach(function (b) { if (window.UiButton) UiButton.done(b); }); },
+            onIneligible: function () { $('accountInfo').hidden = false; }
         });
     }
 

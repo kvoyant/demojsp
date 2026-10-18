@@ -30,9 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * [공통#47] 홈 추천 상품 테스트 (standalone MockMvc - DB 불필요). 금융회원(계좌 보유) = customer01.
  */
-class RecommendProductTest {
+public class RecommendProductTest {
 
-    static ProductProperties.Seed seed(String code, String kind, String sub, String name, boolean onSale, boolean home, Integer order) {
+    public static ProductProperties.Seed seed(String code, String kind, String sub, String name, boolean onSale, boolean home, Integer order) {
         ProductProperties.Seed s = new ProductProperties.Seed();
         s.setCode(code); s.setKind(kind); s.setSubType(sub); s.setName(name); s.setSummary(name + " 설명");
         s.setRateText("연 3.0%"); s.setIcon(kind.equals("LOAN") ? "loan" : "savings");
@@ -51,7 +51,7 @@ class RecommendProductTest {
         return p;
     }
 
-    static MemberSegmentResolver resolver() {
+    public static MemberSegmentResolver resolver() {
         BannerPopupProperties bp = new BannerPopupProperties();
         bp.getTopSlide().setAccountHolders(List.of("customer01"));
         MemberProperties mp = new MemberProperties();
