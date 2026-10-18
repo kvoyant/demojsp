@@ -10,6 +10,7 @@
 | 디자인 토큰 | `/css/common/ui-tokens.css` | 색상·글자·간격 값. Figma 확정 시 이 파일 값만 교체 |
 | Button (No.40) | `/css/common/ui-button.css`, `/js/common/ui-button.js` | 샘플 `/common/ui/button` |
 | Icon (No.41) | `/images/common/ui-icons.svg`, `/css/common/ui-icon.css`, `/js/common/ui-icon.js` | 샘플 `/common/ui/icon` |
+| Alert (No.42) | `/css/common/ui-alert.css`, `/js/common/ui-alert.js` (+ `common.js` 의 `Common.alert/confirm`) | 샘플 `/common/ui/alert` |
 
 - 접두어 `ui-` 를 사용해 Bootstrap(`.btn`)·기존 화면 CSS 와 충돌하지 않는다.
 - jQuery / Bootstrap 비의존. 화면 문구는 `textContent` 로만 출력한다 (XSS 안전).
@@ -153,3 +154,79 @@ UiIcon.inline();              // 외부 스프라이트 참조가 막힌 WebView
 
 - 샘플: `http://localhost:8080/common/ui/icon` → APP 메뉴/신청현황 아이콘 적용 전·후 비교, 카탈로그(검색·크기·색), 사용 코드 생성
 - 단위 테스트: `UiComponentTest.icon*` (스프라이트 ⇄ CATALOG 일치, 요구 아이콘 존재, 스프라이트 품질, 상태 색상 대비)
+
+---
+
+## 3. Alert (공통#42)
+
+### 요구사항
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 사용자에게 주의를 주거나 알림을 주기 위해 사용 |
+| 기능설명 | 1Btn, 2Btn 구성 |
+| 요구사항 | 1. 알럿 내용이 4~5줄 이상일 경우를 고려하여 가독성 높이는 폰트 개선 2. 다양한 화면 크기 및 해상도에서도 UI가 일관된 사용성을 제공하도록 반응형 레이아웃 개선 |
+
+### 구현 내용
+
+| 요구 | 구현 |
+|---|---|
+| 1Btn / 2Btn | `UiAlert.alert()` → `Promise<void>`, `UiAlert.confirm()` → `Promise<boolean>`. 위험 작업(`danger`)은 빨간 확인 버튼 + 기본 포커스 [취소] |
+| 1. 가독성 | 본문 16px(1rem)·줄간격 1.65·진한 글자(#111827, 대비 17:1)·단어 단위 줄바꿈. **3줄 이상이면 왼쪽 정렬로 자동 전환** (여러 줄 가운데 정렬은 줄 시작점이 매번 달라 읽기 어려움) |
+| | 메시지 규칙: `\n` 줄바꿈, `\n\n` 문단 간격, `- `/`· ` 목록(들여쓰기), `※` 보조 안내(작은 회색 글자) |
+| | 화면보다 길면 **본문만 스크롤** (제목·버튼 고정), 위/아래 그림자로 "더 있음" 표시, 키보드로도 스크롤 가능 |
+| 2. 반응형 | 폭: 모바일 = 화면-40px(최대 360) / 600px↑ 400 / 1024px↑ 420. 높이 `100dvh` 기준(모바일 주소창 변화 대응) |
+| | 가로모드·낮은 화면(≤480px) 여백·아이콘 축소, 폴드 접힘(≤280px) 버튼 세로, 노치(safe-area) 여백 |
+| | 2Btn 문구가 두 줄로 접히면 **버튼 세로 배치 자동 전환** (주 버튼 위), rem 단위 → 200% 글자 확대에도 잘림 없음 |
+| 접근성 | `role="alertdialog"`, `aria-modal`, 제목/본문 연결, Tab 포커스 가두기, Esc(=취소), 배경 `inert` + 스크롤 잠금, 닫으면 원래 위치로 포커스 복귀 |
+| 운영 | 연속 호출 시 **큐**로 하나씩 표시, `onOk` 업무 실행 중 알럿 유지(실패 시 유지), HTML 미지원(textContent) → XSS 안전, CSS 자동 로드 |
+
+> 상태 아이콘은 공통#41 스프라이트(`ic-status-*-fill`)를 사용한다. `type: success | error | warning | info`
+
+### 사용법
+
+```html
+<script src="/js/common/ui-alert.js"></script>   <!-- CSS 3종(tokens/button/alert)은 없으면 자동 로드 -->
+```
+
+```javascript
+UiAlert.alert('비밀번호가 변경되었습니다.');
+UiAlert.alert('입력하신 정보가 통신사 정보와 일치하지 않습니다.\n다시 확인해 주세요.', { type: 'error', title: '본인인증 실패' });
+
+UiAlert.confirm('작성 중인 신청서가 있습니다.\n이어서 작성하시겠습니까?', { okText: '이어하기', cancelText: '새로 작성' })
+    .then(function (ok) { if (ok) { ... } });
+
+UiAlert.confirm('해지 후에는 되돌릴 수 없습니다.', { title: '예금 해지', type: 'warning', okText: '해지하기', danger: true });
+
+// 확인 버튼에서 업무 실행 (끝날 때까지 알럿 유지 + "제출 중", 실패 시 알럿 유지 + onError)
+UiAlert.confirm('신청서를 제출할까요?', {
+    okText: '제출하기', busyText: '제출 중',
+    onOk: function () { return fetch('/api/loan/apply', { method: 'POST' }); },
+    onError: function (e) { ... }
+});
+
+// common.js 를 쓰는 기존 화면: Common.ajax 오류 알럿도 ui-alert.js 를 포함하면 공통 Alert 로 바뀐다
+Common.alert('메시지').then(function () { ... });       // ui-alert.js 미포함 화면은 브라우저 기본 alert (기존과 동일)
+Common.confirm('메시지').then(function (ok) { ... });
+```
+
+| 옵션 | 설명 |
+|---|---|
+| `title` | 제목 (없으면 화면에서 숨기고 스크린리더에만 "알림/확인") |
+| `type` | `success` / `error` / `warning` / `info` → 상단 상태 아이콘 |
+| `okText`, `cancelText` | 버튼 문구 (기본 확인 / 취소) |
+| `danger` | 위험 작업: 빨간 확인 버튼, 기본 포커스 [취소] |
+| `onOk`, `busyText`, `onError` | 확인 버튼 업무 실행 |
+| `escClose`(기본 true), `dimClose`(기본 false) | Esc / 배경 눌러 닫기 |
+| `stack`, `focus` | 버튼 세로 강제, 기본 포커스(`ok`/`cancel`) |
+
+> `window.alert()` 는 동기 함수라 그대로 바꿔치기하지 않는다. 기존 화면은 `alert(msg); next();` 를
+> `Common.alert(msg).then(next);` 로 바꾸면서 순차 전환한다 (현재 JSP 내 `alert(` 34건).
+
+### 테스트
+
+- 샘플: `http://localhost:8080/common/ui/alert`
+  - 프리셋 7종 (짧은 문구 / 5줄 이상 / 화면보다 긴 내용 / 확인창 / 위험 작업 / 긴 버튼 문구 / 오류) → 열릴 때 줄 수·왼쪽정렬·버튼세로·본문스크롤 판단 결과 로그
+  - **화면 크기별 미리보기**: 폴드 280 / Android 360 / iPhone 390 / 가로 844×390 / 태블릿 768 / PC 1280 실제 크기 iframe
+  - 연속 3건(큐), 확인 시 업무 실행, 업무 실패 시 유지, AS-IS 브라우저 alert 비교
+- 단위 테스트: `UiComponentTest.alert*`, `commonJsAlertHook` (프리셋 허용 목록, 가독성·반응형 CSS 계약, 접근성·큐 JS 계약, common.js 연동)

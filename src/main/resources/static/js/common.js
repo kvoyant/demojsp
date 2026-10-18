@@ -48,7 +48,7 @@ var Common = {
                 }
             } else {
                 if (settings.errorAlert) {
-                    alert((res && res.message) ? res.message : '처리 중 오류가 발생했습니다.');
+                    Common.alert((res && res.message) ? res.message : '처리 중 오류가 발생했습니다.', { type: 'error' });
                 }
                 if (typeof settings.fail === 'function') {
                     settings.fail(res);
@@ -60,14 +60,15 @@ var Common = {
             if (settings.showLoading) Common.hideLoading();
 
             if (xhr.status === 401) {
-                alert('세션이 만료되었습니다. 다시 로그인해 주세요.');
-                location.href = '/login';
+                Common.alert('세션이 만료되었습니다. 다시 로그인해 주세요.', { type: 'warning' }).then(function () {
+                    location.href = '/login';
+                });
             } else if (xhr.status === 403) {
-                alert('해당 메뉴 또는 기능에 대한 접근 권한이 없습니다.');
+                Common.alert('해당 메뉴 또는 기능에 대한 접근 권한이 없습니다.', { type: 'warning' });
             } else {
                 var errorRes = xhr.responseJSON;
                 var msg = (errorRes && errorRes.message) ? errorRes.message : '시스템 오류가 발생했습니다. 관리자에게 문의하세요.';
-                alert(msg);
+                Common.alert(msg, { type: 'error' });
             }
 
             if (typeof settings.error === 'function') {
@@ -76,6 +77,24 @@ var Common = {
         };
 
         return $.ajax(ajaxOptions);
+    },
+
+    /**
+     * [공통#42] 공통 알럿 - /js/common/ui-alert.js 가 포함된 화면이면 공통 Alert, 아니면 브라우저 기본 alert.
+     * 항상 Promise 를 반환하므로 닫힌 뒤 처리는 .then() 으로 작성한다.
+     */
+    alert: function(message, opts) {
+        if (window.UiAlert) return window.UiAlert.alert(message, opts);
+        window.alert(message);
+        return Promise.resolve();
+    },
+
+    /**
+     * [공통#42] 공통 확인창 - Promise<boolean> (ui-alert.js 미포함 화면은 브라우저 기본 confirm)
+     */
+    confirm: function(message, opts) {
+        if (window.UiAlert) return window.UiAlert.confirm(message, opts);
+        return Promise.resolve(window.confirm(message));
     },
 
     /**

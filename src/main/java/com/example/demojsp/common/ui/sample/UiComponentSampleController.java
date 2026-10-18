@@ -39,6 +39,24 @@ public class UiComponentSampleController {
         return "common/ui/icon";
     }
 
+    /**
+     * 공통#42 Alert 샘플 (WEB-INF/views/common/ui/alert.jsp).
+     * embed=true 이면 "화면 크기별 미리보기" iframe 용 단독 화면으로 열고 preset 알럿을 바로 띄운다.
+     */
+    @GetMapping("/common/ui/alert")
+    public String alert(@RequestParam(value = "embed", defaultValue = "false") boolean embed,
+                        @RequestParam(value = "preset", required = false) String preset,
+                        Model model) {
+        model.addAttribute("embed", embed);
+        // 화면 JS 에 그대로 출력되므로 허용 목록 값만 전달 (XSS 방지)
+        model.addAttribute("preset", preset != null && ALERT_PRESETS.contains(preset) ? preset : "long");   // Set.of 는 null 조회 시 NPE
+        return "common/ui/alert";
+    }
+
+    /** 샘플 알럿 프리셋 (alert.jsp PRESETS 와 동일) */
+    static final java.util.Set<String> ALERT_PRESETS = java.util.Set.of(
+            "short", "long", "scroll", "confirm", "danger", "stack", "error");
+
     /** 샘플 지연 상한 (요청 스레드 점유 방지) */
     static final long MAX_DEMO_DELAY_MS = 3000;
 }

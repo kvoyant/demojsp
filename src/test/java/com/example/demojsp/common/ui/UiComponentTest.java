@@ -167,6 +167,77 @@ class UiComponentTest {
         assertThat(js).contains("aria-hidden", "aria-label", "api.inline = inline", "api.status = status", "global.UiIcon").doesNotContain("innerHTML");
     }
 
+    // ===================================================================== 공통#42 Alert
+
+    @Test
+    @DisplayName("공통#42 샘플 화면 - embed 미리보기, preset 은 허용 목록 값만 화면으로 전달 (XSS 방지)")
+    void alertSamplePage() throws Exception {
+        mvc.perform(get("/common/ui/alert"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("common/ui/alert"))
+                .andExpect(model().attribute("embed", false))
+                .andExpect(model().attribute("preset", "long"));
+        mvc.perform(get("/common/ui/alert").param("embed", "true").param("preset", "stack"))
+                .andExpect(model().attribute("embed", true))
+                .andExpect(model().attribute("preset", "stack"));
+        mvc.perform(get("/common/ui/alert").param("preset", "';alert(1);//"))
+                .andExpect(model().attribute("preset", "long"));
+    }
+
+    @Test
+    @DisplayName("공통#42 요구 1 - 4~5줄 이상 가독성: 16px · 줄간격 1.6 이상 · keep-all · 왼쪽 정렬 전환 · 본문 스크롤")
+    void alertReadability() throws Exception {
+        String css = resource("/css/common/ui-alert.css");
+        String body = block(css, ".ui-alert__body {");
+        assertThat(body).contains("font-size: var(--ui-fs-md, 1rem)", "word-break: keep-all", "overflow-y: auto", "overflow-wrap: anywhere");
+        double lh = Double.parseDouble(body.replaceAll("(?s).*line-height: ([0-9.]+);.*", "$1"));
+        assertThat(lh).isGreaterThanOrEqualTo(1.6);
+        assertThat(css).contains(".ui-alert.is-long .ui-alert__body { text-align: left; }", ".ui-alert__note", ".ui-alert__block + .ui-alert__block");
+        String tokens = resource("/css/common/ui-tokens.css");
+        assertThat(contrast(token(tokens, "--ui-text"), "#ffffff")).isGreaterThanOrEqualTo(7.0);   // 본문 글자 AAA 수준
+        assertThat(contrast(token(tokens, "--ui-text-sub"), "#ffffff")).isGreaterThanOrEqualTo(4.5); // ※ 보조 안내
+    }
+
+    @Test
+    @DisplayName("공통#42 요구 2 - 반응형: 폭 단계 · dvh · 가로모드 · 좁은 화면 · 버튼 세로 전환 · safe-area")
+    void alertResponsive() throws Exception {
+        String css = resource("/css/common/ui-alert.css");
+        assertThat(css)
+                .contains("max-width: 360px", "@media (min-width: 600px)", "@media (min-width: 1024px)")
+                .contains("100dvh", "@media (max-height: 480px)", "@media (max-width: 280px)")
+                .contains(".ui-alert.is-stack .ui-alert__foot", "safe-area-inset");
+        assertThat(css).as("px 고정 글자크기 금지 (글자 확대 대응)").doesNotContainPattern("font-size:\\s*\\d+px");
+    }
+
+    @Test
+    @DisplayName("공통#42 JS - 1Btn/2Btn API, 접근성(alertdialog·포커스 가두기·Esc·inert), 큐, XSS 안전")
+    void alertJsContract() throws Exception {
+        String js = resource("/js/common/ui-alert.js");
+        assertThat(js)
+                .contains("api.alert = alert", "api.confirm = confirm", "global.UiAlert")
+                .contains("'alertdialog'", "aria-modal", "aria-labelledby", "aria-describedby")
+                .contains("'Tab'", "'Escape'", "inert", "returnFocus", "ui-alert-lock")
+                .contains("queue.push", "current = { pending: true }")         // 연속 호출 시 겹치지 않음
+                .contains("is-long", "is-stack", "ResizeObserver")
+                .doesNotContain("innerHTML", "insertAdjacentHTML");
+    }
+
+    @Test
+    @DisplayName("공통#42 common.js - Common.alert/confirm 은 ui-alert.js 가 있으면 공통 Alert, 없으면 브라우저 기본")
+    void commonJsAlertHook() throws Exception {
+        String js = resource("/js/common.js");
+        assertThat(js).contains("alert: function(message, opts)", "window.UiAlert.alert(message, opts)", "window.alert(message)",
+                "confirm: function(message, opts)", "window.UiAlert.confirm(message, opts)");
+        assertThat(js).as("ajax 오류 알럿은 공통 훅 사용").doesNotContainPattern("(?m)^\\s+alert\\(");
+        assertThat(js).as("세션 만료 시 알럿을 닫은 뒤 이동").contains("{ type: 'warning' }).then(function () {\n                    location.href = '/login';");
+    }
+
+    static String block(String css, String selector) {
+        int s = css.indexOf(selector);
+        assertThat(s).as(selector).isGreaterThanOrEqualTo(0);
+        return css.substring(s, css.indexOf('}', s));
+    }
+
     static java.util.Set<String> symbolIds(String svg) {
         java.util.Set<String> ids = new java.util.LinkedHashSet<>();
         java.util.regex.Matcher m = java.util.regex.Pattern.compile("<symbol id=\"ic-([a-z0-9-]+)\"").matcher(svg);

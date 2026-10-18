@@ -357,3 +357,20 @@ common:
           - { label: "샘플 화면", url: "/common/ui/icon", type: PAGE }
           - { label: "아이콘 스프라이트", url: "/images/common/ui-icons.svg", type: PAGE }
           - { label: "Icon JS", url: "/js/common/ui-icon.js", type: PAGE }
+      - cf-id: CF-UI-01
+        req-id: 공통#42
+        title: Alert 공통 컴포넌트 (1Btn/2Btn · 가독성 · 반응형)
+        category: 공통 요구사항 > Alert
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP, PC WEB, 모집인WEB, ADMIN]
+        features:
+          - UiAlert.alert(1Btn) / UiAlert.confirm(2Btn) Promise API, 위험 작업 버튼·기본 포커스 [취소], 확인 시 업무 실행(onOk)
+          - 4~5줄 이상 가독성 - 16px · 줄간격 1.65 · 3줄 이상 왼쪽 정렬 · 문단/목록/보조안내 · 본문만 스크롤
+          - 반응형 - 모바일/태블릿/PC 폭 단계, dvh·가로모드·폴드, 긴 버튼 문구 세로 전환, 200% 글자 확대 대응
+          - 접근성(alertdialog·포커스 가두기·Esc·배경 inert), 연속 호출 큐, XSS 안전, Common.alert 연동
+        guide: docs/COMMON_UI_COMPONENT_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/ui/alert", type: PAGE }
+          - { label: "미리보기(360px·5줄)", url: "/common/ui/alert?embed=true&preset=long", type: PAGE }
+          - { label: "Alert JS", url: "/js/common/ui-alert.js", type: PAGE }
