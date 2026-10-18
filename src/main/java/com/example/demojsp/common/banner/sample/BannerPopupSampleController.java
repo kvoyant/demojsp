@@ -29,4 +29,13 @@ public class BannerPopupSampleController {
     public String topSlide() {
         return "common/banner/top-slide";
     }
+
+    /**
+     * [공통#45] 디지털어드민 "마케팅 > 배너관리 > 배너팝업목록" (WEB-INF/views/common/banner/admin.jsp).
+     * <p>기존 화면에 배너팝업구분 "상단슬라이드배너" 와 이미지 파일선택·대체텍스트·링크·배경색·글자 수 제한 항목을 추가한 형태.
+     */
+    @GetMapping("/common/banner/admin")
+    public String admin() {
+        return "common/banner/admin";
+    }
 }

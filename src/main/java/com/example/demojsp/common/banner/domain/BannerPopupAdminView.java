@@ -26,6 +26,8 @@ import java.util.List;
  * @param status         게시상태 (게시중 / 게시예정 / 게시종료 / 미사용)
  * @param overlapCount   같은 채널에서 게시기간이 겹치는 다른 사용중 배너 수 → 1 이상이면 고객 화면에 슬라이드로 함께 노출
  * @param orderConflict  겹치는 배너 중 표시순서가 같은 배너가 있음 (등록은 허용, 정렬은 최신 시작일시 우선)
+ * @param displayRank    (상단슬라이드배너, 게시중) 현재 고객 화면 노출 순번 1~N. 게시중이 아니면 null
+ * @param overLimit      (상단슬라이드배너) 게시중이지만 최대 노출 건수(5) 밖이라 지금 고객 화면에 안 보임
  * @param registeredAt   등록일시
  * @param registeredBy   등록자
  * @param updatedAt      수정일시
@@ -51,6 +53,8 @@ public record BannerPopupAdminView(
         String status,
         int overlapCount,
         boolean orderConflict,
+        Integer displayRank,
+        boolean overLimit,
         String registeredAt,
         String registeredBy,
         String updatedAt,
@@ -58,12 +62,17 @@ public record BannerPopupAdminView(
 ) {
 
     public static BannerPopupAdminView of(BannerPopup b, String status, int overlapCount, boolean orderConflict) {
+        return of(b, status, overlapCount, orderConflict, null, false);
+    }
+
+    public static BannerPopupAdminView of(BannerPopup b, String status, int overlapCount, boolean orderConflict,
+                                          Integer displayRank, boolean overLimit) {
         return new BannerPopupAdminView(b.id(), b.popupType().name(), b.popupType().getLabel(),
                 b.category().name(), b.category().getLabel(),
                 b.channels().stream().map(Enum::name).toList(),
                 b.title(), b.content(), b.imageUrl(), b.altText(), b.linkUrl(), b.backgroundColor(),
                 BannerSupport.format(b.startAt()), BannerSupport.format(b.endAt()),
-                b.displayOrder(), b.use(), status, overlapCount, orderConflict,
+                b.displayOrder(), b.use(), status, overlapCount, orderConflict, displayRank, overLimit,
                 BannerSupport.formatFull(b.registeredAt()), b.registeredBy(),
                 BannerSupport.formatFull(b.updatedAt()), b.updatedBy());
     }

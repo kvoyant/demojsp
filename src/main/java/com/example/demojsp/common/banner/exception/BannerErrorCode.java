@@ -20,6 +20,9 @@ public enum BannerErrorCode {
     TOO_LONG(HttpStatus.BAD_REQUEST, "BNR-106", "입력 가능한 글자 수를 초과했습니다."),
     INVALID_CODE(HttpStatus.BAD_REQUEST, "BNR-107", "배너팝업구분/공지유형 값이 올바르지 않습니다."),
     INVALID_COLOR(HttpStatus.BAD_REQUEST, "BNR-108", "배경 색상은 #RRGGBB 형식으로 입력해 주세요."),
+    INVALID_IMAGE(HttpStatus.BAD_REQUEST, "BNR-109", "이미지 파일(PNG, JPG, GIF, WEBP)만 등록할 수 있습니다."),
+    IMAGE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "BNR-110", "이미지 파일 용량이 너무 큽니다."),
+    IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "BNR-111", "이미지를 찾을 수 없습니다."),
 
     ADMIN_ONLY(HttpStatus.FORBIDDEN, "BNR-401", "배너팝업 관리 권한이 없습니다.");
 

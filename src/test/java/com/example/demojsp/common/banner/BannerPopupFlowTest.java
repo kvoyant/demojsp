@@ -2,6 +2,7 @@ package com.example.demojsp.common.banner;
 
 import com.example.demojsp.common.banner.config.BannerPopupProperties;
 import com.example.demojsp.common.banner.service.BannerPopupService;
+import com.example.demojsp.common.banner.store.BannerImageStore;
 import com.example.demojsp.common.banner.store.InMemoryBannerPopupRepository;
 import com.example.demojsp.common.banner.web.BannerApiExceptionHandler;
 import com.example.demojsp.common.banner.web.BannerPopupAdminApiController;
@@ -64,7 +65,7 @@ class BannerPopupFlowTest {
         BannerRequestContext context = new BannerRequestContext(props);
         mvc = MockMvcBuilders.standaloneSetup(
                         new BannerPopupApiController(service),
-                        new BannerPopupAdminApiController(service, context))
+                        new BannerPopupAdminApiController(service, context, new BannerImageStore(props)))
                 .setControllerAdvice(new BannerApiExceptionHandler())
                 .build();
     }

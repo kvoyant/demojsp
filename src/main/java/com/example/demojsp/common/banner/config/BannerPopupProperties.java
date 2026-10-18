@@ -60,6 +60,10 @@ public class BannerPopupProperties {
         private boolean demoCustomerParam = false;
         /** 계좌 보유 고객 (ConfigAccountHoldingChecker local 흉내용) */
         private List<String> accountHolders = new ArrayList<>();
+        /** 상품소개 메인텍스트 최대 글자 수 (공통#45 기능6 "글자 수 제한" - 360px 화면 2줄 기준 수행사 제안값) */
+        private int mainTextMax = 20;
+        /** 서브텍스트 최대 글자 수 (공통#45 기능6) */
+        private int subTextMax = 30;
 
         public int getMaxCount() { return maxCount; }
         public void setMaxCount(int maxCount) { this.maxCount = maxCount; }
@@ -71,6 +75,36 @@ public class BannerPopupProperties {
         public void setDemoCustomerParam(boolean demoCustomerParam) { this.demoCustomerParam = demoCustomerParam; }
         public List<String> getAccountHolders() { return accountHolders; }
         public void setAccountHolders(List<String> accountHolders) { this.accountHolders = accountHolders; }
+        public int getMainTextMax() { return mainTextMax; }
+        public void setMainTextMax(int mainTextMax) { this.mainTextMax = mainTextMax; }
+        public int getSubTextMax() { return subTextMax; }
+        public void setSubTextMax(int subTextMax) { this.subTextMax = subTextMax; }
+    }
+
+    /** 배너 이미지 업로드 (공통#45 기능2 "이미지 파일선택") */
+    private ImageUpload imageUpload = new ImageUpload();
+
+    public ImageUpload getImageUpload() { return imageUpload; }
+    public void setImageUpload(ImageUpload imageUpload) { this.imageUpload = imageUpload; }
+
+    /**
+     * 배너 이미지 업로드 설정.
+     * <p>local 은 디스크 폴더에 저장한다. 운영은 {@code BannerImageStore} 를 공용 파일서버/오브젝트 스토리지(CF-TC-09 파일 공통) 구현체로 교체.
+     */
+    public static class ImageUpload {
+        /** 저장 폴더 (비우면 java.io.tmpdir/demojsp-banner-images) */
+        private String dir;
+        /** 최대 용량 (byte) - 기본 2MB */
+        private long maxBytes = 2L * 1024 * 1024;
+        /** 화면에서 이미지를 불러올 URL 접두어 */
+        private String urlPrefix = "/common/banner/images/";
+
+        public String getDir() { return dir; }
+        public void setDir(String dir) { this.dir = dir; }
+        public long getMaxBytes() { return maxBytes; }
+        public void setMaxBytes(long maxBytes) { this.maxBytes = maxBytes; }
+        public String getUrlPrefix() { return urlPrefix; }
+        public void setUrlPrefix(String urlPrefix) { this.urlPrefix = urlPrefix; }
     }
 
     /**

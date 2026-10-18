@@ -1,6 +1,10 @@
 spring:
   application:
     name: demojsp
+  servlet:
+    multipart:              # 배너 이미지 업로드(공통#45). 업무 상한(2MB)은 common.banner-popup.image-upload.max-bytes 에서 검사
+      max-file-size: 10MB
+      max-request-size: 10MB
   mvc:
     view:
       prefix: /WEB-INF/views/
@@ -286,6 +290,12 @@ common:
       default-background-color: "#E3ECFA"
       demo-customer-param: true   # local 테스트 전용! 운영: false (로그인 세션 고객만)
       account-holders: [customer01]   # local 흉내: 계좌 보유 고객 (운영은 계좌원장 조회 구현체로 교체)
+      main-text-max: 20           # 공통#45 상품소개 메인텍스트 글자 수 제한 (수행사 제안값 - 업무 확정 후 조정)
+      sub-text-max: 30            # 공통#45 서브텍스트 글자 수 제한
+    image-upload:                 # 공통#45 이미지 파일선택 (local 디스크 저장 - 운영은 파일 공통 저장소로 교체)
+      dir:                        # 비우면 java.io.tmpdir/demojsp-banner-images
+      max-bytes: 2097152          # 2MB
+      url-prefix: /common/banner/images/
 
 # =============================================================================
 # [CF-BC-13 / 공통#43] 이어하기 공통모듈 (com.example.demojsp.common.resume)
@@ -456,3 +466,20 @@ common:
           - { label: "샘플 화면", url: "/common/banner/top-slide", type: PAGE }
           - { label: "APP 노출 API", url: "/api/common/top-slide-banners?channel=APP", type: API }
           - { label: "계좌 보유 고객(미노출)", url: "/api/common/top-slide-banners?channel=APP&demoCustomer=customer01", type: API }
+      - cf-id: CF-BC-20
+        req-id: 공통#45
+        title: 상단슬라이드배너 ADMIN (배너팝업목록 항목 추가)
+        category: 공통 요구사항 > 홈 - 상단슬라이드배너 (ADMIN)
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [ADMIN]
+        features:
+          - "기존 마케팅 > 배너관리 > 배너팝업목록 활용 - 배너팝업구분 \"상단슬라이드배너\" 추가, 구분 필터, 구분별 입력란 전환"
+          - "이미지 파일선택(업로드 → URL 자동 입력, PNG·JPG·GIF·WEBP 매직바이트 검사, SVG 차단, 2MB) + 대체텍스트(이미지 시 필수)"
+          - "링크 URL, 배경 색상(색상 선택·HEX·추천색, 글자색 자동 대비 4.5:1 표시), 메인 20자·서브 30자 제한(실시간 카운터 + 서버 검증)"
+          - "입력 중 APP 미리보기, 기준시각 고객 화면 미리보기, 목록에 노출 순번·최대 5건 초과 경고"
+        guide: docs/COMMON_TOP_SLIDE_BANNER_GUIDE.md
+        links:
+          - { label: "배너팝업목록(ADMIN)", url: "/common/banner/admin", type: PAGE }
+          - { label: "상단슬라이드배너 목록 API", url: "/api/common/banner-admin/popups?popupType=TOP_SLIDE", type: API }
+          - { label: "기준시각 미리보기 API", url: "/api/common/banner-admin/top-slide-preview?channel=APP", type: API }

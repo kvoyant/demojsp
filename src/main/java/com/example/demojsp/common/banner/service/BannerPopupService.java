@@ -148,6 +148,16 @@ public class BannerPopupService {
             return new TopSlideBannerList(ch.name(), BannerSupport.formatFull(at), false, AUDIENCE_ACCOUNT_HOLDER,
                     0, cfg.getMaxCount(), cfg.getIntervalMs(), 0, List.of());
         }
+        return buildTopSlides(ch, at);
+    }
+
+    /** ADMIN 미리보기 - 기준시각의 상단슬라이드배너 (계좌 보유 여부와 무관하게 계좌 미보유 고객 화면 기준) */
+    public TopSlideBannerList topSlidePreview(String channel, LocalDateTime at) {
+        return buildTopSlides(parseChannel(channel), at);
+    }
+
+    private TopSlideBannerList buildTopSlides(BannerChannel ch, LocalDateTime at) {
+        BannerPopupProperties.TopSlide cfg = properties.getTopSlide();
         List<BannerPopup> targets = repository.findAll().stream()
                 .filter(b -> b.displayableAt(at, ch, BannerPopupType.TOP_SLIDE))
                 .sorted(BannerPopup.DISPLAY_ORDER)
@@ -249,6 +259,18 @@ public class BannerPopupService {
         codes.put("popupTypes", types);
         codes.put("categories", categories);
         codes.put("channels", channels);
+        // 화면 글자 수 표시·입력 제한용 (서버 검증과 같은 값)
+        BannerPopupProperties.TopSlide ts = properties.getTopSlide();
+        Map<String, String> limits = new LinkedHashMap<>();
+        limits.put("titleMax", String.valueOf(MAX_TITLE));
+        limits.put("contentMax", String.valueOf(MAX_CONTENT));
+        limits.put("altMax", String.valueOf(MAX_ALT));
+        limits.put("mainTextMax", String.valueOf(ts.getMainTextMax()));
+        limits.put("subTextMax", String.valueOf(ts.getSubTextMax()));
+        limits.put("topSlideMaxCount", String.valueOf(ts.getMaxCount()));
+        limits.put("imageMaxBytes", String.valueOf(properties.getImageUpload().getMaxBytes()));
+        limits.put("defaultBackgroundColor", ts.getDefaultBackgroundColor());
+        codes.put("limits", limits);
         return codes;
     }
 
@@ -268,7 +290,23 @@ public class BannerPopupService {
                 orderConflict |= o.displayOrder() == b.displayOrder();
             }
         }
-        return BannerPopupAdminView.of(b, status(b, now), overlap, orderConflict);
+        String status = status(b, now);
+        Integer rank = null;
+        boolean overLimit = false;
+        if (b.popupType() == BannerPopupType.TOP_SLIDE && STATUS_ON.equals(status)) {
+            // 노출 채널 중 가장 앞선 순번 (보통 APP 하나)
+            int max = properties.getTopSlide().getMaxCount();
+            for (BannerChannel ch : b.channels()) {
+                List<BannerPopup> shown = all.stream()
+                        .filter(o -> o.displayableAt(now, ch, BannerPopupType.TOP_SLIDE))
+                        .sorted(BannerPopup.DISPLAY_ORDER)
+                        .toList();
+                int r = shown.indexOf(b) + 1;
+                if (r > 0 && (rank == null || r < rank)) rank = r;
+            }
+            overLimit = rank != null && max > 0 && rank > max;
+        }
+        return BannerPopupAdminView.of(b, status, overlap, orderConflict, rank, overLimit);
     }
 
     static String status(BannerPopup b, LocalDateTime now) {
@@ -290,16 +328,20 @@ public class BannerPopupService {
     }
 
     /** 등록/수정 요청 서버측 검증 → 원장 객체 생성 */
-    private static BannerPopup validate(BannerPopupRequest req, long id, LocalDateTime registeredAt, String registeredBy,
+    private BannerPopup validate(BannerPopupRequest req, long id, LocalDateTime registeredAt, String registeredBy,
                                         LocalDateTime updatedAt, String updatedBy) {
         if (req == null) {
             throw new BannerException(BannerErrorCode.INVALID_REQUEST);
         }
-        BannerPopupType type = parseEnum(BannerPopupType.class, req.popupType() == null ? "BANNER_POPUP" : req.popupType(), "배너팝업구분");
-        if (req.category() == null || req.category().isBlank()) {
+        BannerPopupType type = parseEnum(BannerPopupType.class,
+                req.popupType() == null || req.popupType().isBlank() ? "BANNER_POPUP" : req.popupType(), "배너팝업구분");
+        boolean topSlide = type == BannerPopupType.TOP_SLIDE;
+        // 상단슬라이드배너는 상품소개 전용 → 공지유형 입력 없이 "이벤트·상품안내" (공통#45)
+        String categoryValue = topSlide && (req.category() == null || req.category().isBlank()) ? BannerCategory.EVENT.name() : req.category();
+        if (categoryValue == null || categoryValue.isBlank()) {
             throw new BannerException(BannerErrorCode.REQUIRED_MISSING, "공지유형");
         }
-        BannerCategory category = parseEnum(BannerCategory.class, req.category(), "공지유형");
+        BannerCategory category = parseEnum(BannerCategory.class, categoryValue, "공지유형");
 
         if (req.channels() == null || req.channels().isEmpty()) {
             throw new BannerException(BannerErrorCode.REQUIRED_MISSING, "노출채널");
@@ -309,8 +351,10 @@ public class BannerPopupService {
             channels.add(parseChannel(c));
         }
 
-        String title = required(req.title(), "제목", MAX_TITLE);
-        String content = required(req.content(), "내용", MAX_CONTENT);
+        // 공통#45 기능6 상품소개 메인텍스트·서브텍스트 글자 수 제한 (화면 2줄 안에 들어가도록)
+        BannerPopupProperties.TopSlide ts = properties.getTopSlide();
+        String title = topSlide ? required(req.title(), "상품소개 메인텍스트", ts.getMainTextMax()) : required(req.title(), "제목", MAX_TITLE);
+        String content = topSlide ? required(req.content(), "서브텍스트", ts.getSubTextMax()) : required(req.content(), "내용", MAX_CONTENT);
 
         String imageUrl = BannerSupport.trimToNull(req.imageUrl());
         String altText = BannerSupport.trimToNull(req.altText());
@@ -330,7 +374,7 @@ public class BannerPopupService {
         if (bgColor != null && !BannerSupport.isHexColor(bgColor)) {
             throw new BannerException(BannerErrorCode.INVALID_COLOR, "배경 색상");
         }
-        bgColor = type == BannerPopupType.TOP_SLIDE && bgColor != null ? bgColor.toUpperCase(Locale.ROOT) : null;
+        bgColor = topSlide && bgColor != null ? bgColor.toUpperCase(Locale.ROOT) : null;
 
         LocalDateTime start = BannerSupport.parse(req.startAt(), "게시 시작일시");
         LocalDateTime end = BannerSupport.parse(req.endAt(), "게시 종료일시");

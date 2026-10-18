@@ -1,6 +1,12 @@
 package com.example.demojsp.common.banner.web;
 
 import com.example.demojsp.common.banner.domain.BannerDisplayList;
+import com.example.demojsp.common.banner.domain.BannerImage;
+import com.example.demojsp.common.banner.domain.TopSlideBannerList;
+import com.example.demojsp.common.banner.exception.BannerException;
+import com.example.demojsp.common.banner.store.BannerImageStore;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import com.example.demojsp.common.banner.domain.BannerPopupAdminView;
 import com.example.demojsp.common.banner.domain.BannerPopupRequest;
 import com.example.demojsp.common.banner.exception.BannerErrorCode;
@@ -35,7 +41,9 @@ import java.util.Map;
  *  PUT    /api/common/banner-admin/popups/{id}                 수정
  *  POST   /api/common/banner-admin/popups/{id}/use?use=false   사용여부 변경 (즉시 게시중지/재게시)
  *  DELETE /api/common/banner-admin/popups/{id}                 삭제
- *  GET    /api/common/banner-admin/preview?channel=APP&at=yyyy-MM-dd HH:mm   기준시각 노출 미리보기
+ *  GET    /api/common/banner-admin/preview?channel=APP&at=yyyy-MM-dd HH:mm   기준시각 노출 미리보기 (배너팝업)
+ *  GET    /api/common/banner-admin/top-slide-preview?channel=APP&at=...      기준시각 노출 미리보기 (상단슬라이드배너, 공통#45)
+ *  POST   /api/common/banner-admin/images   (multipart file)               이미지 파일선택 업로드 → imageUrl (공통#45)
  * </pre>
  *
  * <p>권한: {@link BannerRequestContext#requireAdmin} - ROLE_ADMIN 세션 또는 local 전용 {@code admin-api-open=true}.
@@ -46,10 +54,13 @@ public class BannerPopupAdminApiController {
 
     private final BannerPopupService bannerPopupService;
     private final BannerRequestContext context;
+    private final BannerImageStore imageStore;
 
-    public BannerPopupAdminApiController(BannerPopupService bannerPopupService, BannerRequestContext context) {
+    public BannerPopupAdminApiController(BannerPopupService bannerPopupService, BannerRequestContext context,
+                                         BannerImageStore imageStore) {
         this.bannerPopupService = bannerPopupService;
         this.context = context;
+        this.imageStore = imageStore;
     }
 
     @GetMapping("/codes")
@@ -109,6 +120,31 @@ public class BannerPopupAdminApiController {
             return ApiResponse.success(bannerPopupService.displayable(channel));
         }
         return ApiResponse.success(bannerPopupService.displayable(channel, BannerSupport.parse(at, "기준시각")));
+    }
+
+    /** 상단슬라이드배너 기준시각 미리보기 - 계좌 미보유 고객 화면 기준 (최대 5건·표시순서·글자색 적용 결과) */
+    @GetMapping("/top-slide-preview")
+    public ApiResponse<TopSlideBannerList> topSlidePreview(@RequestParam(value = "channel", defaultValue = "APP") String channel,
+                                                           @RequestParam(value = "at", required = false) String at,
+                                                           HttpServletRequest request) {
+        context.requireAdmin(request);
+        return ApiResponse.success(bannerPopupService.topSlidePreview(channel,
+                at == null || at.isBlank() ? java.time.LocalDateTime.now() : BannerSupport.parse(at, "기준시각")));
+    }
+
+    /** 공통#45 기능2 이미지 파일선택 - 저장 후 imageUrl 로 쓸 URL 반환 (PNG/JPG/GIF/WEBP, 매직바이트 검사) */
+    @PostMapping("/images")
+    public ApiResponse<BannerImage> uploadImage(@RequestParam(value = "file", required = false) MultipartFile file,
+                                                HttpServletRequest request) {
+        String adminId = context.requireAdmin(request);
+        if (file == null || file.isEmpty()) {
+            throw new BannerException(BannerErrorCode.REQUIRED_MISSING, "이미지 파일");
+        }
+        try {
+            return ApiResponse.success("이미지가 등록되었습니다.", imageStore.save(file.getBytes(), adminId));
+        } catch (IOException e) {
+            throw new BannerException(BannerErrorCode.INVALID_IMAGE, "파일 읽기 실패");
+        }
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
