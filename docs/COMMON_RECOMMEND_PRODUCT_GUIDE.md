@@ -19,6 +19,33 @@
 | 기능3 상품 터치 → 상품안내페이지 | 카드 전체가 `detailUrl` 링크 |
 | 기능4 금융회원 화면: 추천 상품 전체 숨김 | `eligible=false`, 화면은 영역 hidden |
 
+## 1-2. 공통#48 ADMIN 요구사항 → 구현 - 화면 `/common/product/admin`
+
+| 요구사항 | 구현 |
+|---|---|
+| 1. ADMIN 수신상품목록·여신상품목록 > 상품설정 컬럼 추가 (홈 표시여부, 홈 표시순서) | 목록 탭(수신/여신) + 상품설정 컬럼, 상단 "홈 표시 현황"(합산 건수·순서별 상품) |
+| 2. 홈 표시여부 Y/N, Y = 표시 / N = 미표시 | `PUT /api/common/product-admin/products/{id}/home` - 저장 즉시 고객 API 반영 |
+| 2. 수신+여신 총 3개까지, 초과 Y 시 등록 불가 + 안내팝업 "등록 건수 3개를 초과하였습니다." | 서버 PRD-101 (문구 원문, 3 = `max-home-count`), 화면 사전 검사 후 공통 Alert 팝업·값 되돌림. 이미 Y 인 상품의 순서 변경은 건수 증가 아님 |
+| 3. Y 선택 시 표시순서 선택 필수, 1/2/3 중 1개 | PRD-102 (미선택), PRD-104 (범위) |
+| 3. 수신·여신 간 동일 숫자 불가, 표현: 음영처리 or 클릭 미동작 or 안내팝업 "표시순서를 변경하세요" | 다른 상품이 쓰는 순서는 선택지 **음영처리(disabled, "사용중: 상품명")** + 서버 PRD-103 **안내팝업** 둘 다 |
+| 4. 기존 상품설정 내용을 콘텐츠 각 항목에 연동 | 추천 카드의 상품명·설명·금리·상품안내 URL 은 상품 원장 그대로. `PUT /products/{id}` 로 수정 → 홈 카드 즉시 반영, 판매중지 시 숨김 |
+
+동시 저장 대비: 검증과 저장을 한 번에(synchronized) 처리 - 운영 DB 구현 시 홈 표시순서에 **유니크 제약(Y 인 행만)** 또는 행 잠금 권장.
+
+### ADMIN API
+
+| Method | URL | 설명 |
+|---|---|---|
+| GET | `/api/common/product-admin/products?kind=DEPOSIT|LOAN` | 목록 (상품설정 컬럼) |
+| GET | `/api/common/product-admin/home-status` | `maxCount`, `count`, `slots[order, productId, name, kindName]` |
+| PUT | `/api/common/product-admin/products/{id}/home` | `{homeDisplay:"Y"|"N", homeOrder:1~3}` |
+| PUT | `/api/common/product-admin/products/{id}` | `{name, summary, rateText, detailUrl, onSale}` |
+
+오류 코드: PRD-101 건수 초과 · 102 순서 미선택 · 103 순서 중복 · 104 순서 범위 · 105 필수 · 106 글자수 · 107 URL · 401 권한.
+
+### 운영 DB (참고)
+기존 상품 테이블에 `HOME_DISP_YN CHAR(1) DEFAULT 'N'`, `HOME_DISP_ORD NUMBER(1)` 추가 → `ProductRepository` MyBatis 구현.
+
 ## 2. 업무 화면 적용
 
 ```html
@@ -47,5 +74,7 @@
 - 금융회원 기준: 수신 또는 여신 계좌 보유 (상단슬라이드배너 공통#44 와 동일 판단).
 
 ## 5. 테스트
+
+`ProductAdminTest` (6건, 공통#48): 수신/여신 목록·현황, Y/N 반영, 합산 3개 제한 문구, 순서 필수·범위·중복 문구, 상품설정 연동·판매중지, 권한.
 
 `RecommendProductTest` (4건): 홈 표시순서·N/판매중지 제외, 더보기·상품안내 링크·원장 내용, 금융회원 숨김, 화면 JS 계약.

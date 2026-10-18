@@ -14,4 +14,10 @@ public class ProductSampleController {
     public String recommend() {
         return "common/product/recommend";
     }
+
+    /** [공통#48] ADMIN 수신상품목록 / 여신상품목록 - 상품설정 홈 표시여부·순서 (WEB-INF/views/common/product/admin.jsp) */
+    @GetMapping("/common/product/admin")
+    public String admin() {
+        return "common/product/admin";
+    }
 }

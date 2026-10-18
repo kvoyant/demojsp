@@ -577,3 +577,20 @@ common:
           - { label: "샘플 화면", url: "/common/product/recommend", type: PAGE }
           - { label: "추천 상품 API", url: "/api/common/products/recommend", type: API }
           - { label: "금융회원(숨김)", url: "/api/common/products/recommend?demoCustomer=customer01", type: API }
+      - cf-id: CF-BC-20
+        req-id: 공통#48
+        title: 추천 상품 ADMIN (수신/여신상품목록 홈 표시여부·순서)
+        category: 공통 요구사항 > 홈 - 추천 상품 (ADMIN)
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [ADMIN]
+        features:
+          - "수신상품목록 / 여신상품목록 상품설정 컬럼 추가: 홈 표시여부(Y/N), 홈 표시순서(1/2/3)"
+          - "수신+여신 합산 3개까지 - 초과 Y 시 안내팝업 \"등록 건수 3개를 초과하였습니다.\""
+          - "Y 이면 순서 필수, 수신·여신 간 같은 순서 불가 - 사용중 순서 음영처리 + 안내팝업 \"표시순서를 변경하세요\" (서버 동일 검증)"
+          - "상품설정(상품명·설명·금리·URL·판매여부) 수정이 홈 추천 상품 카드에 바로 연동, 미리보기"
+        guide: docs/COMMON_RECOMMEND_PRODUCT_GUIDE.md
+        links:
+          - { label: "상품목록(ADMIN)", url: "/common/product/admin", type: PAGE }
+          - { label: "홈 표시 현황 API", url: "/api/common/product-admin/home-status", type: API }
+          - { label: "수신상품목록 API", url: "/api/common/product-admin/products?kind=DEPOSIT", type: API }

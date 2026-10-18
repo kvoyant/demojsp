@@ -11,14 +11,26 @@ public class ProductException extends RuntimeException {
     }
 
     public ProductException(ProductErrorCode errorCode, String field) {
-        super(errorCode.getCode() + " " + errorCode.getMessage() + (field == null ? "" : " (" + field + ")"));
+        this(errorCode, field, errorCode.getMessage());
+    }
+
+    /** 메시지에 값이 들어가는 경우 (예: "등록 건수 3개를 초과하였습니다.") */
+    public static ProductException format(ProductErrorCode errorCode, Object... args) {
+        return new ProductException(errorCode, null, String.format(errorCode.getMessage(), args));
+    }
+
+    private final String message;
+
+    private ProductException(ProductErrorCode errorCode, String field, String message) {
+        super(errorCode.getCode() + " " + message + (field == null ? "" : " (" + field + ")"));
         this.errorCode = errorCode;
         this.field = field;
+        this.message = message;
     }
 
     public ProductErrorCode getErrorCode() { return errorCode; }
 
     public String displayMessage() {
-        return field == null ? errorCode.getMessage() : errorCode.getMessage() + " [" + field + "]";
+        return field == null ? message : message + " [" + field + "]";
     }
 }
