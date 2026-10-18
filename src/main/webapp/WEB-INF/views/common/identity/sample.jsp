@@ -20,6 +20,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- 본인인증 공통 JS (이 한 줄만 있으면 된다) -->
     <script src="/js/common/identity-auth.js"></script>
+    <!-- [CF-BC-04] 약관동의 공통 컴포넌트 - 본인인증 화면 약관도 공통 컴포넌트로 통일 -->
+    <script src="/js/common/terms-agree.js"></script>
     <style>
         body { background-color: #f4f6f9; font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif; }
         .card-header-financial { background-color: #0d47a1; color: white; font-weight: bold; }
@@ -44,12 +46,8 @@
                 </select>
             </div>
 
-            <!-- 약관: 서버(/api/common/identity/terms)에서 내려온 목록으로 구성 -->
+            <!-- 약관: [CF-BC-04] 약관동의 공통 컴포넌트 (업무코드 IDENTITY_NICE_MOBILE) 로 통일 -->
             <div class="mb-3">
-                <div class="form-check border-bottom pb-2 mb-2">
-                    <input class="form-check-input" type="checkbox" id="agreeAll">
-                    <label class="form-check-label fw-bold" for="agreeAll">전체 동의</label>
-                </div>
                 <div id="terms"></div>
             </div>
 
@@ -70,34 +68,19 @@
     var logEl = document.getElementById('log');
     function log(o) { logEl.textContent = typeof o === 'string' ? o : JSON.stringify(o, null, 2); }
 
-    // 1) 약관 목록 + 상세보기 링크 (textContent 사용 → XSS 안전)
-    IdentityAuth.getTerms(METHOD).then(function (terms) {
-        var box = document.getElementById('terms');
-        terms.forEach(function (t, i) {
-            var row = document.createElement('div');
-            row.className = 'form-check d-flex justify-content-between';
-            var left = document.createElement('div');
-            var cb = document.createElement('input');
-            cb.type = 'checkbox'; cb.className = 'form-check-input'; cb.name = 'terms'; cb.value = t.code; cb.id = 'terms' + i;
-            var label = document.createElement('label');
-            label.className = 'form-check-label'; label.htmlFor = cb.id;
-            label.textContent = (t.required ? '[필수] ' : '[선택] ') + t.title;
-            left.appendChild(cb); left.appendChild(label);
-            var view = document.createElement('a');
-            view.href = t.contentUrl; view.target = '_blank'; view.className = 'small'; view.textContent = '상세보기';
-            row.appendChild(left); row.appendChild(view);
-            box.appendChild(row);
-        });
-    }).catch(log);
-
-    document.getElementById('agreeAll').addEventListener('change', function (e) {
-        document.querySelectorAll('input[name=terms]').forEach(function (cb) { cb.checked = e.target.checked; });
-    });
+    // 1) 약관동의 - 공통 컴포넌트를 화면에 삽입 (약관 목록/문구는 서버 ADMIN 등록 약관)
+    //    ※ 본인인증 팝업은 클릭 이벤트 안에서 동기적으로 열어야 하므로(팝업 차단),
+    //      약관동의 완료 → 사용자가 [휴대폰 본인인증] 버튼을 다시 누르는 2단계로 구성한다.
+    var agreedTerms = null;
+    TermsAgree.open({ bizCode: 'IDENTITY_NICE_MOBILE', mode: 'inline', container: '#terms', title: '본인인증 약관 동의' })
+        .then(function (r) {
+            if (r.success) { agreedTerms = r.data.agreedCodes; log({ '약관동의 완료': r.data }); }
+        }).catch(log);
 
     // 2) 본인인증 (반드시 클릭 이벤트 안에서 호출 → 팝업 차단 회피)
     document.getElementById('btnAuth').addEventListener('click', function () {
-        var agreed = Array.prototype.map.call(document.querySelectorAll('input[name=terms]:checked'),
-            function (cb) { return cb.value; });
+        if (!agreedTerms) { alert('본인인증 약관에 먼저 동의해 주세요.'); return; }
+        var agreed = agreedTerms;
         IdentityAuth.open({
             method: METHOD,
             channel: document.getElementById('channel').value,

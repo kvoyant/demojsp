@@ -77,3 +77,161 @@ common:
       read-timeout: 5s
       # 통신사 미지정 / MO인증 결합 등 상품 옵션 → NICE 가 안내한 파라미터명·값을 그대로 기입
       extra-request-params: {}
+
+# =============================================================================
+# [CF-BC-04] 약관동의 공통모듈 (com.example.demojsp.common.terms)  - REQ-AP-602
+#  - 화면/Java 에는 약관 코드·문구를 하드코딩하지 않는다. 업무코드(bizCode)만 넘겨서 조회.
+#  - seed = "ADMIN 약관관리에 등록된 약관" 을 흉내낸 초기 데이터 (운영은 DB 구현체로 교체)
+#  - 샘플 화면: http://localhost:8080/common/terms/sample
+# =============================================================================
+  terms:
+    agreement-ttl: 30m        # 약관동의 후 업무 처리 완료까지 허용 시간
+    admin-api-open: true      # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+    biz-names:                # Map 키의 '_' 보존을 위해 "[키]" 표기 필수 (Spring Boot 바인딩 규칙)
+      "[SIGN_UP]": 회원가입
+      "[LOAN_APPLY]": 대출신청
+      "[IDENTITY_NICE_MOBILE]": 휴대폰 본인인증
+      "[IDENTITY_ID_CARD]": 신분증·안면인증
+    seed:
+      # ---------------- 회원가입 (필수 3 + 선택 2)
+      - biz-code: SIGN_UP
+        code: SVC_USE
+        title: 전자금융거래 기본약관
+        required: true
+        version: "1.0"
+        sort-order: 1
+        content: |
+          제1조 (목적)
+          이 약관은 저축은행(이하 "은행")과 이용자 사이의 전자금융거래에 관한 기본적인 사항을 정함을 목적으로 합니다.
+          제2조 (적용범위)
+          이 약관은 은행이 제공하는 인터넷뱅킹, 모바일뱅킹 등 전자금융거래 서비스에 적용됩니다.
+          ※ 샘플 문구입니다. 실제 문구는 ADMIN 약관관리에서 등록합니다.
+      - biz-code: SIGN_UP
+        code: PRIVACY_COLLECT
+        title: 개인(신용)정보 수집·이용 동의
+        required: true
+        version: "1.0"
+        sort-order: 2
+        content: |
+          1. 수집·이용 목적: 회원가입 및 회원관리, 전자금융거래 제공
+          2. 수집 항목: 성명, 생년월일, 휴대폰번호, 연계정보(CI), 이메일
+          3. 보유·이용 기간: 회원 탈퇴 후 5년 (관계 법령에 따름)
+          4. 동의를 거부할 권리가 있으나, 거부 시 회원가입이 제한됩니다.
+      - biz-code: SIGN_UP
+        code: UNIQUE_ID
+        title: 고유식별정보 처리 동의
+        required: true
+        version: "1.0"
+        sort-order: 3
+        content: |
+          1. 처리 목적: 실명 확인 및 금융거래 본인 식별
+          2. 처리 항목: 주민등록번호, 외국인등록번호
+          3. 보유·이용 기간: 거래 종료 후 5년
+      - biz-code: SIGN_UP
+        code: MARKETING_USE
+        title: 마케팅 목적 개인정보 수집·이용 동의
+        required: false
+        version: "1.0"
+        sort-order: 10
+        content: |
+          1. 목적: 신상품 안내, 이벤트·혜택 제공, 맞춤형 상품 추천
+          2. 항목: 성명, 휴대폰번호, 이메일, 거래정보
+          3. 보유기간: 동의 철회 시까지
+          ※ 동의하지 않아도 서비스 이용에는 제한이 없습니다.
+      - biz-code: SIGN_UP
+        code: MARKETING_SMS
+        title: 광고성 정보 수신 동의 (SMS·앱푸시)
+        required: false
+        version: "1.0"
+        sort-order: 11
+        content: |
+          은행이 제공하는 상품·이벤트 등 광고성 정보를 SMS, 앱푸시로 받아보실 수 있습니다.
+          수신 동의는 언제든지 [설정 > 알림]에서 철회할 수 있습니다.
+
+      # ---------------- 대출신청 (필수 3 + 선택 1)
+      - biz-code: LOAN_APPLY
+        code: LOAN_BASIC
+        title: 여신거래기본약관 (가계용)
+        required: true
+        version: "2.0"
+        sort-order: 1
+        content: |
+          제1조 (적용범위) 이 약관은 은행과 채무자 사이의 가계용 여신거래에 관한 모든 거래에 적용됩니다.
+          제2조 (이자 등) 이자·할인료·보증료·수수료 등은 법령이 허용하는 한도 내에서 정합니다.
+      - biz-code: LOAN_APPLY
+        code: CREDIT_INQUIRY
+        title: 개인(신용)정보 조회 동의
+        required: true
+        version: "1.0"
+        sort-order: 2
+        content: |
+          대출 심사를 위해 신용정보집중기관 및 신용조회회사로부터 귀하의 개인(신용)정보를 조회합니다.
+          조회 사실은 신용평점에 영향을 주지 않습니다.
+      - biz-code: LOAN_APPLY
+        code: CREDIT_PROVIDE
+        title: 개인(신용)정보 제공 동의
+        required: true
+        version: "1.0"
+        sort-order: 3
+        content: |
+          제공받는 자: 신용정보집중기관, 신용보증기관
+          제공 목적: 여신거래 설정·유지·관리, 신용정보 집중관리
+      - biz-code: LOAN_APPLY
+        code: LOAN_MARKETING
+        title: 대출 상품 안내 수신 동의
+        required: false
+        version: "1.0"
+        sort-order: 10
+        content: |
+          금리 인하, 대환 상품 등 대출 관련 혜택 정보를 안내받습니다. (선택)
+
+      # ---------------- 휴대폰 본인인증 (CF-BC-03 화면 약관 컴포넌트 통일)
+      #   코드는 common.identity.terms.NICE_MOBILE 과 동일해야 본인인증 시작 시 서버 재검증을 통과한다.
+      - { biz-code: IDENTITY_NICE_MOBILE, code: NICE_PRIVACY,    title: "개인정보 수집·이용 동의", required: true, version: "1.0", sort-order: 1, content: "본인확인을 위해 성명, 생년월일, 성별, 휴대폰번호를 수집·이용합니다." }
+      - { biz-code: IDENTITY_NICE_MOBILE, code: NICE_UNIQUE_ID,  title: "고유식별정보 처리 동의",   required: true, version: "1.0", sort-order: 2, content: "본인확인기관(NICE평가정보)은 본인확인을 위해 고유식별정보를 처리합니다." }
+      - { biz-code: IDENTITY_NICE_MOBILE, code: NICE_SERVICE,    title: "본인확인서비스 이용약관",  required: true, version: "1.0", sort-order: 3, content: "NICE평가정보(주)가 제공하는 휴대폰 본인확인서비스 이용에 관한 약관입니다." }
+      - { biz-code: IDENTITY_NICE_MOBILE, code: NICE_CARRIER,    title: "통신사 이용약관 동의",     required: true, version: "1.0", sort-order: 4, content: "통신사 미지정 방식: 이동통신 3사 및 알뜰폰 사업자 공통 이용약관입니다." }
+      - { biz-code: IDENTITY_NICE_MOBILE, code: NICE_NON_CREDIT, title: "비여신금융거래 약관",      required: true, version: "1.0", sort-order: 5, content: "비여신금융거래(조회, 증명서 발급, 회원정보 관리) 시 본인확인에 관한 약관입니다." }
+
+      # ---------------- 신분증·안면인증 (선택약관 없음 → 2단계 자동 생략)
+      - { biz-code: IDENTITY_ID_CARD, code: ID_CARD_COLLECT, title: "신분증 사본 수집·이용 동의",   required: true, version: "1.0", sort-order: 1, content: "비대면 실명확인을 위해 신분증 사본(이미지)을 수집하고 발급기관에 진위확인을 요청합니다." }
+      - { biz-code: IDENTITY_ID_CARD, code: FACE_BIO,        title: "생체(얼굴)정보 수집·이용 동의", required: true, version: "1.0", sort-order: 2, content: "안면인증을 위해 촬영한 얼굴 이미지와 신분증 사진을 비교하며, 인증 완료 즉시 파기합니다." }
+
+# =============================================================================
+# 공통모듈 테스트 허브 - http://localhost:8080/common/test-hub
+#  요구사항이 추가되면 아래 items 에 블록만 추가하면 목록에 나타난다.
+# =============================================================================
+  test-hub:
+    items:
+      - cf-id: CF-BC-03
+        req-id: REQ-AP-601
+        title: 휴대폰 본인인증 NICE ID 공통모듈
+        category: 공통 요구사항 > 본인인증
+        status: 개발완료
+        channels: [APP, PC WEB, 모집인WEB]
+        features:
+          - NICE 표준창(팝업/WebView) + 콜백, 통신사 미지정·MO인증 옵션
+          - 인증 결과 CI 세션 반영 (목적별 분리, 1회 사용)
+          - 사설인증 확장 SPI (PrivateCertProvider)
+        guide: docs/COMMON_IDENTITY_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/identity/sample", type: PAGE }
+          - { label: "인증수단 API", url: "/api/common/identity/methods", type: API }
+          - { label: "약관 API", url: "/api/common/identity/terms?method=NICE_MOBILE", type: API }
+      - cf-id: CF-BC-04
+        req-id: REQ-AP-602
+        title: 약관동의 공통모듈 (필수/선택 항목 분리)
+        category: 공통 요구사항 > 약관동의
+        status: 개발완료
+        requested-at: "2026-09-15"
+        channels: [APP, PC WEB, 모집인WEB]
+        features:
+          - 필수 전체동의 → 선택 전체동의 2단계 (단일 페이지 2개)
+          - 항목별 상세보기, 필수 미동의 시 다음 단계 진행 불가
+          - 업무코드 단위 ADMIN 등록 약관 조회 (하드코딩 금지)
+          - 동의 이력에 약관 버전·해시 저장 (증적), 개정 시 재동의 유도
+        guide: docs/COMMON_TERMS_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/terms/sample", type: PAGE }
+          - { label: "회원가입 약관 API", url: "/api/common/terms/SIGN_UP", type: API }
+          - { label: "업무코드 목록(ADMIN)", url: "/api/common/terms-admin/biz-codes", type: API }

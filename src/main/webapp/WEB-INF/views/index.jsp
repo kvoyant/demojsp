@@ -121,6 +121,27 @@
             </div>
         </div>
 
+        <!-- 6. 공통모듈 테스트 허브 (CF-BC-03 본인인증, CF-BC-04 약관동의 ...) -->
+        <div class="col-md-6">
+            <div class="card menu-card shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fs-1 text-primary"><i class="bi bi-clipboard2-check"></i></div>
+                        <span class="badge bg-info text-dark px-3 py-2 fw-bold">공통모듈</span>
+                    </div>
+                    <h4 class="fw-bold mb-2">공통모듈 테스트</h4>
+                    <p class="text-muted small flex-grow-1">
+                        • <strong>CF-BC-03 / REQ-AP-601</strong>: 휴대폰 본인인증 NICE ID 공통모듈<br>
+                        • <strong>CF-BC-04 / REQ-AP-602</strong>: 약관동의 공통모듈 (필수/선택 2단계)<br>
+                        • 요구사항이 추가될 때마다 목록에 이어서 등록
+                    </p>
+                    <a href="/common/test-hub" class="btn btn-primary fw-bold py-2 mt-3">
+                        <i class="bi bi-list-check me-1"></i>공통모듈 테스트 목록 &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- 5. 포털 게시판 -->
         <div class="col-md-6">
             <div class="card menu-card shadow-sm h-100">

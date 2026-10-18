@@ -25,6 +25,9 @@
                 <li class="nav-item">
                     <a class="nav-link text-warning fw-bold" href="/common/auth/account-cert"><i class="bi bi-coin me-1"></i>1원 계좌인증</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/common/test-hub"><i class="bi bi-clipboard2-check me-1"></i>공통모듈 테스트</a>
+                </li>
                 <% if (isLoggedIn && "ROLE_ADMIN".equals(loginUser.getRoleCd())) { %>
                 <li class="nav-item">
                     <a class="nav-link text-warning fw-bold" href="/common/auth/ci-migration">
