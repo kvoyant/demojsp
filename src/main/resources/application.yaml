@@ -269,6 +269,35 @@ common:
         use: false
 
 # =============================================================================
+# [CF-BC-13 / 공통#43] 이어하기 공통모듈 (com.example.demojsp.common.resume)
+#  - 홈(ALL) / 저축(DEPOSIT, 공통#49) / 대출(LOAN, 공통#60) 이 같은 API·카드를 scope 로 공유
+#  - partners = 회사명 DB(당행/제휴사 마스터), seed = 진행 중인 신청 (기동 시각 기준 상대 일시)
+#  - 샘플 화면: http://localhost:8080/common/resume/sample
+# =============================================================================
+  resume:
+    demo-api-open: true             # local 테스트 전용! 운영: false (로그인 세션 고객만, 테스트 API 차단)
+    demo-default-customer: customer01
+    status-url: /common/resume/status   # [더보기] = 신청현황조회 화면 (실제 APP 화면 URL 로 교체)
+    own-partner-code: OWN
+    default-expire-days: 30         # 업무가 만료일수를 주지 않을 때 (상품별 이어하기 정책으로 업무가 지정)
+    allowed-url-prefixes:
+      - /                           # 같은 도메인 상대경로 (APP 딥링크 사용 시 "pepperapp://" 등 추가)
+    partners:                       # 로고는 수집·제작 후 logo-url 등록. 비우면 대체 로고(당행: 은행 아이콘, 제휴사: 첫 글자)
+      - { code: OWN,       name: 페퍼저축은행, own: true }
+      - { code: PARTNER_A, name: 제휴플랫폼A,  logo-url: /images/common/resume/logo-partner-sample.svg }
+      - { code: PARTNER_B, name: 제휴플랫폼B }
+    seed:
+      # ---- customer01 (로그인 샘플 계정과 동일 ID): 진행중 3건(여신2·수신1) + 완료 1 + 만료 1
+      - { customer-id: customer01, product-type: LOAN, biz-code: LOAN_APPLY, biz-name: 대출신청, product-code: PS_SMART, product-name: 페퍼스마트대출, partner-code: PARTNER_A, step-name: 서류제출, step-no: 3, total-steps: 5, resume-url: "/common/resume/landing?biz=LOAN_APPLY&product=PS_SMART&step=3", started-minutes-ago: 1500, last-activity-minutes-ago: 20, expire-days: 7 }
+      - { customer-id: customer01, product-type: DEPOSIT, biz-code: DEPOSIT_OPEN, biz-name: 계좌개설, product-code: PS_PARKING4, product-name: 페퍼스 파킹통장4, partner-code: OWN, step-name: 본인인증, step-no: 2, total-steps: 4, resume-url: "/common/resume/landing?biz=DEPOSIT_OPEN&product=PS_PARKING4&step=2", started-minutes-ago: 3000, last-activity-minutes-ago: 2880, expire-days: 30 }
+      - { customer-id: customer01, product-type: LOAN, biz-code: LOAN_APPLY, biz-name: 대출신청, product-code: PS_BIZ_MORTGAGE, product-name: 페퍼스 사업자담보대출, partner-code: OWN, step-name: 담보정보입력, step-no: 2, total-steps: 6, resume-url: "/common/resume/landing?biz=LOAN_APPLY&product=PS_BIZ_MORTGAGE&step=2", started-minutes-ago: 8000, last-activity-minutes-ago: 7200, expire-days: 30 }
+      - { customer-id: customer01, product-type: DEPOSIT, biz-code: DEPOSIT_OPEN, biz-name: 계좌개설, product-code: PS_2030, product-name: 페퍼스 2030적금, step-name: 완료, step-no: 4, total-steps: 4, resume-url: "/common/resume/landing?biz=DEPOSIT_OPEN&product=PS_2030&step=4", status: COMPLETED, started-minutes-ago: 600, last-activity-minutes-ago: 10 }
+      - { customer-id: customer01, product-type: LOAN, biz-code: LOAN_APPLY, biz-name: 대출신청, product-code: PS_OLD, product-name: "[만료] 지난 대출신청", partner-code: PARTNER_B, step-name: 한도조회, step-no: 1, total-steps: 5, resume-url: "/common/resume/landing?biz=LOAN_APPLY&product=PS_OLD&step=1", started-minutes-ago: 14400, last-activity-minutes-ago: 5, expire-days: 7 }
+      # ---- customer02: 수신 1건만 (홈=1건, 대출 탭=0건)
+      - { customer-id: customer02, product-type: DEPOSIT, biz-code: DEPOSIT_OPEN, biz-name: 계좌개설, product-code: PS_2030, product-name: 페퍼스 2030적금, step-name: 약관동의, step-no: 1, total-steps: 4, resume-url: "/common/resume/landing?biz=DEPOSIT_OPEN&product=PS_2030&step=1", started-minutes-ago: 90, last-activity-minutes-ago: 60 }
+      # ---- customer03: 이어하기 없음 → 카드 미노출 (제공대상 아님)
+
+# =============================================================================
 # 공통모듈 테스트 허브 - http://localhost:8080/common/test-hub
 #  요구사항이 추가되면 아래 items 에 블록만 추가하면 목록에 나타난다.
 # =============================================================================
@@ -374,3 +403,20 @@ common:
           - { label: "샘플 화면", url: "/common/ui/alert", type: PAGE }
           - { label: "미리보기(360px·5줄)", url: "/common/ui/alert?embed=true&preset=long", type: PAGE }
           - { label: "Alert JS", url: "/js/common/ui-alert.js", type: PAGE }
+      - cf-id: CF-BC-13
+        req-id: 공통#43
+        title: 홈 - 이어하기 (건수 · 최신 1건 · 더보기 · 상단 카드)
+        category: 공통 요구사항 > 홈 - 이어하기
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP]
+        features:
+          - "이어하기 전체 중 최신 1건(마지막 진행일시 기준) + 진행 중 건수 숫자 표시"
+          - "[더보기] → 신청현황조회, [이어하기] → 해당 상품 신청 단계 (서버가 본인·진행중·만료 재확인)"
+          - "카드 구조: 로고 + 회사명 + 상품명 + [이어하기], 회사명·로고는 회사 마스터(DB) 조회 - 당행/제휴사 로고 분기"
+          - "화면 상단 카드(팝업 아님) → 뒷 화면 가림 해소, 0건이면 미노출 / scope(ALL·DEPOSIT·LOAN)로 저축·대출 탭 재사용"
+        guide: docs/COMMON_RESUME_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/resume/sample", type: PAGE }
+          - { label: "홈 이어하기 API", url: "/api/common/resume?scope=ALL", type: API }
+          - { label: "신청현황조회", url: "/common/resume/status", type: PAGE }

@@ -1,0 +1,170 @@
+/*
+ * =============================================================================
+ *  [CF-BC-13 / 공통#43] 이어하기 카드  -  /css/common/resume-card.css   (ui-tokens.css 먼저 로드)
+ * -----------------------------------------------------------------------------
+ *  AS-IS: 화면을 덮는 팝업 → 뒷 화면 가림.  TO-BE: 화면 상단에 놓이는 일반 카드 (흐름 안 배치, 덮지 않음)
+ *  구조: 머리(제목 + 건수 + 더보기) / 본문(로고 + 회사명 + 상품명 + 이어하기) / 진행 막대
+ *  접두어 ui-resume 사용 → Bootstrap·기존 화면 CSS 와 충돌 없음. 색은 모두 ui-tokens 변수 (대비 4.5:1 이상)
+ * =============================================================================
+ */
+.ui-resume {
+    font-family: var(--ui-font);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-primary-soft-press);
+    border-radius: var(--ui-radius-lg);
+    padding: 14px 16px 12px;
+    box-shadow: 0 2px 10px rgba(13, 71, 161, .08);
+    color: var(--ui-text);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ---- 머리 */
+.ui-resume__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.ui-resume__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: var(--ui-fs-sm);
+    font-weight: 700;
+    line-height: var(--ui-lh-tight);
+    color: var(--ui-text);
+}
+.ui-resume__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 .4rem;
+    border-radius: 999px;
+    background: var(--ui-primary);
+    color: var(--ui-on-primary);
+    font-size: var(--ui-fs-xs);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.ui-resume__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 32px;               /* 터치 영역 */
+    padding: 0 2px 0 8px;
+    font-size: var(--ui-fs-sm);
+    color: var(--ui-text-sub);
+    text-decoration: none;
+    border-radius: var(--ui-radius-sm);
+}
+.ui-resume__more:hover { color: var(--ui-primary); }
+.ui-resume__more:focus-visible { outline: none; box-shadow: var(--ui-focus-ring); }
+.ui-resume__chev {
+    width: 7px;
+    height: 7px;
+    margin-left: 4px;
+    border-right: 2px solid currentColor;
+    border-top: 2px solid currentColor;
+    transform: rotate(45deg);
+}
+
+/* ---- 본문 */
+.ui-resume__body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.ui-resume__logo {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--ui-surface-sub);
+    border: 1px solid var(--ui-line);
+}
+.ui-resume__logo img { width: 100%; height: 100%; object-fit: contain; }
+.ui-resume__logo.is-own { background: var(--ui-primary-soft); border-color: var(--ui-primary-soft-press); color: var(--ui-primary); }
+.ui-resume__logo.is-own .ui-icon { width: 26px; height: 26px; }
+.ui-resume__initial { font-size: var(--ui-fs-xl); font-weight: 800; color: var(--ui-text-sub); }
+
+.ui-resume__info {
+    flex: 1 1 auto;
+    min-width: 0;                   /* 긴 상품명 말줄임 */
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.ui-resume__company {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--ui-fs-xs);
+    color: var(--ui-text-sub);
+}
+.ui-resume__tag {
+    font-size: .6875rem;
+    line-height: 1;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid var(--ui-line-strong);
+    color: var(--ui-text-sub);
+}
+.ui-resume__product {
+    font-size: var(--ui-fs-md);
+    font-weight: 700;
+    line-height: var(--ui-lh-tight);
+    color: var(--ui-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ui-resume__meta {
+    font-size: var(--ui-fs-xs);
+    line-height: var(--ui-lh-tight);
+    color: var(--ui-text-sub);
+    /* 단계·마감일은 잘리면 안 되는 정보 → 최대 2줄 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    word-break: keep-all;
+}
+.ui-resume__go { flex: 0 0 auto; }
+
+/* ---- 진행 막대 */
+.ui-resume__progress {
+    margin-top: 12px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--ui-surface-press);
+    overflow: hidden;
+}
+.ui-resume__progress > span {
+    display: block;
+    height: 100%;
+    min-width: 6px;
+    background: var(--ui-primary);
+    border-radius: 2px;
+}
+
+/* ---- 좁은 화면(폴드 280px) · 200% 글자 확대: 버튼을 아래 줄로 */
+@media (max-width: 320px) {
+    .ui-resume__body { flex-wrap: wrap; }
+    .ui-resume__go { width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .ui-resume { animation: ui-resume-in var(--ui-dur) var(--ui-ease); }
+}
+@keyframes ui-resume-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+}
