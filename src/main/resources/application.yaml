@@ -327,6 +327,47 @@ common:
       # ---- customer03: 이어하기 없음 → 카드 미노출 (제공대상 아님)
 
 # =============================================================================
+# 회원구분 (비로그인 / 일반회원 / 금융회원) - 공통#46 퀵메뉴, 공통#47 추천 상품 개인화 기준
+#  금융회원 = 계좌 보유 (banner-popup.top-slide.account-holders 흉내와 같은 AccountHoldingChecker 사용)
+# =============================================================================
+  member:
+    demo-customer-param: true     # local 테스트 전용! 운영: false (로그인 세션 고객만)
+
+# =============================================================================
+# [공통#46] 홈 퀵메뉴 + 전체메뉴(ADMIN 뱅킹메뉴목록) (com.example.demojsp.common.menu)
+#  - 퀵메뉴: 하드코딩 6종(yaml 고정 - ADMIN 관리 아님), 3*2, 아이콘(공통#41) + 메뉴명, 회원구분별 배치
+#  - 전체메뉴 > 상품 > 전체상품(신규) · 예금상품 · 대출상품 · 금융계산기
+#  - 샘플 화면: http://localhost:8080/common/menu/sample
+# =============================================================================
+  menu:
+    admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+    login-url: /login
+    quick:
+      max-count: 6
+      columns: 3
+      items:
+        - { code: ALL_PRODUCTS, name: 전체상품, icon: products,     url: /product/all }
+        - { code: ACCOUNT_OPEN, name: 계좌개설, icon: account,      url: /account/open }
+        - { code: LOAN_APPLY,   name: 대출신청, icon: loan,         url: /loan/apply }
+        - { code: OPEN_BANKING, name: 오픈뱅킹, icon: open-banking, url: /openbanking,      requires-login: true }
+        - { code: E_SIGN,       name: 전자서명, icon: contract,     url: /esign,            requires-login: true }
+        - { code: DOC_SUBMIT,   name: 서류제출, icon: document,     url: /document/submit,  requires-login: true }
+      layouts:                    # 회원구분별 배치 (정책2 개인화). 요구사항 확정 메뉴는 6종 동일 → 순서만 구분별로 다르게 둘 수 있음
+        DEFAULT:   [ALL_PRODUCTS, ACCOUNT_OPEN, LOAN_APPLY, OPEN_BANKING, E_SIGN, DOC_SUBMIT]
+        FINANCIAL: [ALL_PRODUCTS, ACCOUNT_OPEN, LOAN_APPLY, OPEN_BANKING, E_SIGN, DOC_SUBMIT]
+    banking-seed:                 # ADMIN 뱅킹메뉴목록 초기 데이터 (TO-BE 반영 상태)
+      - { category: PRODUCT, category-name: 상품, name: 전체상품,   url: /product/all,        display-order: 1, new-badge: true }
+      - { category: PRODUCT, category-name: 상품, name: 예금상품,   url: /product/deposit,    display-order: 2 }
+      - { category: PRODUCT, category-name: 상품, name: 대출상품,   url: /product/loan,       display-order: 3 }
+      - { category: PRODUCT, category-name: 상품, name: 금융계산기, url: /product/calculator, display-order: 4 }
+      - { category: MY,      category-name: 내계좌, name: 계좌조회, url: /account/list,       display-order: 1 }
+      - { category: MY,      category-name: 내계좌, name: 신청현황조회, url: /common/resume/status, display-order: 2 }
+      - { category: TRANSFER, category-name: 이체, name: 이체,     url: /transfer,           display-order: 1 }
+      - { category: TRANSFER, category-name: 이체, name: 오픈뱅킹, url: /openbanking,        display-order: 2 }
+      - { category: SERVICE, category-name: 금융서비스, name: 전자서명, url: /esign,          display-order: 1 }
+      - { category: SERVICE, category-name: 금융서비스, name: 서류제출, url: /document/submit, display-order: 2 }
+
+# =============================================================================
 # 공통모듈 테스트 허브 - http://localhost:8080/common/test-hub
 #  요구사항이 추가되면 아래 items 에 블록만 추가하면 목록에 나타난다.
 # =============================================================================
@@ -483,3 +524,21 @@ common:
           - { label: "배너팝업목록(ADMIN)", url: "/common/banner/admin", type: PAGE }
           - { label: "상단슬라이드배너 목록 API", url: "/api/common/banner-admin/popups?popupType=TOP_SLIDE", type: API }
           - { label: "기준시각 미리보기 API", url: "/api/common/banner-admin/top-slide-preview?channel=APP", type: API }
+      - cf-id: CF-UI-01
+        req-id: 공통#46
+        title: 홈 - 퀵메뉴 (회원구분별 개인화 · 3*2 · 전체메뉴 전체상품)
+        category: 공통 요구사항 > 홈 - 퀵메뉴
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP, ADMIN]
+        features:
+          - "퀵메뉴 6개 3*2 배열, 이미지(공통 아이콘) + 메뉴명, 하드코딩 6종(전체상품·계좌개설·대출신청·오픈뱅킹·전자서명·서류제출)"
+          - "회원구분(비로그인/일반회원/금융회원)별 배치, 비로그인은 로그인 필요 메뉴 → 로그인 후 이동"
+          - "전체메뉴 > 상품 > 전체상품(신규)·예금상품·대출상품·금융계산기"
+          - "ADMIN 뱅킹메뉴목록: 전체상품 신규등록, 표시순서 끼워넣기/위아래 이동(카테고리 1..N 자동 정리)"
+        guide: docs/COMMON_HOME_MENU_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/menu/sample", type: PAGE }
+          - { label: "퀵메뉴 API", url: "/api/common/menus/quick", type: API }
+          - { label: "전체메뉴 API", url: "/api/common/menus/all", type: API }
+          - { label: "뱅킹메뉴목록(ADMIN)", url: "/api/common/menu-admin/banking-menus?category=PRODUCT", type: API }

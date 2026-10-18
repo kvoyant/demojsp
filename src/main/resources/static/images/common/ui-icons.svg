@@ -166,6 +166,19 @@
       <path d="M12 7.5C10.6 4.2 7.3 4 7.5 6.1c.1 1.2 2.4 1.4 4.5 1.4zM12 7.5c1.4-3.3 4.7-3.5 4.5-1.4-.1 1.2-2.4 1.4-4.5 1.4z"/>
     </g>
   </symbol>
+  <symbol id="ic-products" viewBox="0 0 24 24"><title>전체상품</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/>
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>
+    </g>
+  </symbol>
+  <symbol id="ic-open-banking" viewBox="0 0 24 24"><title>오픈뱅킹</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.5 9.5L7 6.5l4.5 3z"/><path d="M3.5 9.5v5M10.5 9.5v5M2.5 15h9"/>
+      <path d="M12.5 15.5l4.5-3 4.5 3z"/><path d="M13.5 15.5v4M20.5 15.5v4M12.5 20h9"/>
+      <path d="M13 6.5h5.5l-2-2M11 12.5h-.5"/>
+    </g>
+  </symbol>
 
   <!-- ============================================================ 상태 (선형 - 문구 옆, 목록) -->
   <symbol id="ic-status-success" viewBox="0 0 24 24"><title>성공</title>

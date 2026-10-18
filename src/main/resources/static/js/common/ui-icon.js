@@ -62,6 +62,8 @@
         { name: 'customer-center',    ko: '고객센터·상담',        group: 'FINANCE' },
         { name: 'notice',             ko: '공지·알림',            group: 'FINANCE' },
         { name: 'event',              ko: '혜택·이벤트',          group: 'FINANCE' },
+        { name: 'products',           ko: '전체상품',             group: 'FINANCE' },
+        { name: 'open-banking',       ko: '오픈뱅킹',             group: 'FINANCE' },
 
         { name: 'status-success',      ko: '성공',        group: 'STATUS', tone: 'success' },
         { name: 'status-error',        ko: '실패',        group: 'STATUS', tone: 'error' },
