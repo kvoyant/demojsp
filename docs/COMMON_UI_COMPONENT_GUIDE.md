@@ -9,6 +9,7 @@
 |---|---|---|
 | 디자인 토큰 | `/css/common/ui-tokens.css` | 색상·글자·간격 값. Figma 확정 시 이 파일 값만 교체 |
 | Button (No.40) | `/css/common/ui-button.css`, `/js/common/ui-button.js` | 샘플 `/common/ui/button` |
+| Icon (No.41) | `/images/common/ui-icons.svg`, `/css/common/ui-icon.css`, `/js/common/ui-icon.js` | 샘플 `/common/ui/icon` |
 
 - 접두어 `ui-` 를 사용해 Bootstrap(`.btn`)·기존 화면 CSS 와 충돌하지 않는다.
 - jQuery / Bootstrap 비의존. 화면 문구는 `textContent` 로만 출력한다 (XSS 안전).
@@ -91,3 +92,64 @@ UiButton.done(btn);
   - 색상 대비 표: 화면에 실제 적용된 색으로 대비 계산
   - 중복 실행 차단: "빠르게 5번 클릭" → 클릭 5회 / 실행 1회
 - 단위 테스트: `UiComponentTest` (샘플 컨트롤러, CSS/JS 요구 계약, 토큰 색상 대비 계산)
+
+---
+
+## 2. Icon (공통#41)
+
+### 요구사항
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 단조로운 화면 구성 개선 및 화면 별 일관성과 사용성 향상 |
+| 기능설명 | 사용자의 이해를 돕는 보조 이미지 도구 |
+| 요구사항 | 1. 금융 서비스 전용 아이콘 종류 추가 2. 상태(성공/실패/주의) 아이콘 종류 추가 |
+
+### 구현 내용
+
+| 요구 | 구현 |
+|---|---|
+| 1. 금융 서비스 아이콘 | 24종: 대출·예금·적금·이체·계좌·은행·카드·신용점수·금리·한도조회·상환·대환·오토담보·주택담보·계산기·서류제출·전자약정·본인인증·보안·OTP·납입일·고객센터·공지·혜택 |
+| 2. 상태 아이콘 | 성공·실패·주의·안내·진행중 × 선형(목록·문구 옆) / 채움형(결과 화면·Alert 상단) = 10종 |
+| 일관성 | SVG 스프라이트 1개 파일, 24 그리드·선 굵기 1.75 통일, 색은 `currentColor` → 화면별 PNG 제작 금지 |
+| 사용성 | 크기 6단계(16~64px), 톤(primary/success/error/warning/info/muted), 메뉴 타일, 상태 문구 |
+| 접근성 | 장식 아이콘 `aria-hidden`, 의미 아이콘 `role="img"`+`aria-label`, 상태는 색+모양+글자 함께 표현, 글자 대비 4.5:1 |
+
+### 사용법
+
+```html
+<link rel="stylesheet" href="/css/common/ui-tokens.css">
+<link rel="stylesheet" href="/css/common/ui-icon.css">
+<script src="/js/common/ui-icon.js"></script>   <!-- data-ui-icon / UiIcon.* 사용 시 -->
+
+<!-- JS 없이 -->
+<svg class="ui-icon ui-icon--lg ui-icon--primary" aria-hidden="true" focusable="false">
+  <use href="/images/common/ui-icons.svg#ic-loan"></use>
+</svg>
+
+<!-- 선언형 -->
+<i data-ui-icon="repayment" data-size="lg" data-tone="primary"></i>
+<i data-ui-icon="status-success-fill" data-size="xl" data-tone="success" data-label="성공"></i>
+
+<!-- 메뉴 타일 / 상태 문구 -->
+<a href="/loan/limit" class="ui-icon-tile"><span class="ui-icon-tile__bg"><i data-ui-icon="limit-inquiry"></i></span>한도조회</a>
+<span class="ui-status ui-status--warning"><i data-ui-icon="status-warning"></i>서류 보완 필요</span>
+```
+
+```javascript
+el.appendChild(UiIcon.create('auto-loan', { size: 'xl', tone: 'primary', label: '오토담보대출' }));
+el.appendChild(UiIcon.status('success', '승인 완료'));
+UiIcon.render(container);     // 동적으로 추가한 data-ui-icon 변환
+UiIcon.inline();              // 외부 스프라이트 참조가 막힌 WebView 에서 1회
+```
+
+### 아이콘 추가 절차
+
+1. `ui-icons.svg` 에 `symbol id="ic-영문명" viewBox="0 0 24 24"` + `title`(한글명) 추가 (선 굵기 1.75, `currentColor`)
+2. `ui-icon.js` 의 `CATALOG` 에 `{ name, ko, group }` 추가
+3. `UiComponentTest` 실행 → 스프라이트·CATALOG 불일치, viewBox, title, 스크립트 포함 여부를 검사
+
+### 테스트
+
+- 샘플: `http://localhost:8080/common/ui/icon` → APP 메뉴/신청현황 아이콘 적용 전·후 비교, 카탈로그(검색·크기·색), 사용 코드 생성
+- 단위 테스트: `UiComponentTest.icon*` (스프라이트 ⇄ CATALOG 일치, 요구 아이콘 존재, 스프라이트 품질, 상태 색상 대비)

@@ -104,6 +104,83 @@ class UiComponentTest {
                 .doesNotContain("innerHTML");               // XSS 안전 (textContent 만 사용)
     }
 
+    // ===================================================================== 공통#41 Icon
+
+    @Test
+    @DisplayName("공통#41 샘플 화면 - 뷰 이름")
+    void iconSamplePage() throws Exception {
+        mvc.perform(get("/common/ui/icon"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("common/ui/icon"));
+    }
+
+    @Test
+    @DisplayName("공통#41 스프라이트 ⇄ UiIcon.CATALOG 1:1 일치 (아이콘 추가 시 한쪽만 추가하는 실수 방지)")
+    void iconCatalogMatchesSprite() throws Exception {
+        java.util.Set<String> sprite = symbolIds(resource("/images/common/ui-icons.svg"));
+        java.util.Set<String> catalog = catalogNames(resource("/js/common/ui-icon.js"));
+        assertThat(sprite).isNotEmpty();
+        assertThat(catalog).containsExactlyInAnyOrderElementsOf(sprite);
+    }
+
+    @Test
+    @DisplayName("공통#41 요구 1·2 - 금융 서비스 아이콘 20종 이상, 상태(성공/실패/주의) 아이콘 선형·채움형 제공")
+    void iconRequirements() throws Exception {
+        String js = resource("/js/common/ui-icon.js");
+        java.util.Set<String> ids = symbolIds(resource("/images/common/ui-icons.svg"));
+        long finance = java.util.regex.Pattern.compile("group: 'FINANCE'").matcher(js).results().count();
+        assertThat(finance).as("금융 서비스 전용 아이콘 수").isGreaterThanOrEqualTo(20);
+        assertThat(ids).contains("loan", "deposit", "savings", "transfer", "account", "limit-inquiry",
+                "repayment", "refinance", "auto-loan", "mortgage", "interest-rate", "credit-score", "document", "identity");
+        assertThat(ids).contains("status-success", "status-error", "status-warning",
+                "status-success-fill", "status-error-fill", "status-warning-fill");
+    }
+
+    @Test
+    @DisplayName("공통#41 스프라이트 품질 - 24 그리드, 한글 title, currentColor, 스크립트 없음")
+    void iconSpriteQuality() throws Exception {
+        String svg = resource("/images/common/ui-icons.svg");
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("<symbol id=\"ic-([a-z0-9-]+)\" viewBox=\"([^\"]+)\"><title>([^<]+)</title>([\\s\\S]*?)</symbol>").matcher(svg);
+        int n = 0;
+        while (m.find()) {
+            n++;
+            assertThat(m.group(2)).as(m.group(1) + " viewBox").isEqualTo("0 0 24 24");
+            assertThat(m.group(3)).as(m.group(1) + " 한글 title").matches(".*[가-힣A-Z].*");
+            assertThat(m.group(4)).as(m.group(1) + " currentColor").contains("currentColor");
+        }
+        assertThat(n).isEqualTo(symbolIds(svg).size());
+        assertThat(svg.toLowerCase()).doesNotContain("<script", "onload=", "<foreignobject");
+    }
+
+    @Test
+    @DisplayName("공통#41 상태 문구(.ui-status) 글자/배경 대비 4.5:1 이상")
+    void iconStatusContrast() throws Exception {
+        String t = resource("/css/common/ui-tokens.css");
+        for (String s : new String[]{"success", "error", "warning", "info"}) {
+            assertThat(contrast(token(t, "--ui-" + s), token(t, "--ui-" + s + "-soft"))).as(s).isGreaterThanOrEqualTo(4.5);
+            assertThat(contrast(token(t, "--ui-" + s), "#ffffff")).as(s + " on white").isGreaterThanOrEqualTo(4.5);
+        }
+        String css = resource("/css/common/ui-icon.css");
+        assertThat(css).contains(".ui-status--success", ".ui-status--error", ".ui-status--warning", ".ui-icon-tile", ".ui-icon--xl");
+        String js = resource("/js/common/ui-icon.js");
+        assertThat(js).contains("aria-hidden", "aria-label", "api.inline = inline", "api.status = status", "global.UiIcon").doesNotContain("innerHTML");
+    }
+
+    static java.util.Set<String> symbolIds(String svg) {
+        java.util.Set<String> ids = new java.util.LinkedHashSet<>();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("<symbol id=\"ic-([a-z0-9-]+)\"").matcher(svg);
+        while (m.find()) ids.add(m.group(1));
+        return ids;
+    }
+
+    static java.util.Set<String> catalogNames(String js) {
+        java.util.Set<String> names = new java.util.LinkedHashSet<>();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\{ name: '([a-z0-9-]+)',").matcher(js);
+        while (m.find()) names.add(m.group(1));
+        return names;
+    }
+
     // ===================================================================== util
 
     static String token(String css, String name) {

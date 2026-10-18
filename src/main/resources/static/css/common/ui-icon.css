@@ -1,0 +1,100 @@
+/*
+ * =============================================================================
+ *  [CF-UI-01 / 공통#41] Icon 공통 컴포넌트  -  /css/common/ui-icon.css   (ui-tokens.css 먼저 로드)
+ * -----------------------------------------------------------------------------
+ *  [목적]   단조로운 화면 구성 개선 및 화면별 일관성·사용성 향상
+ *  [기능]   사용자의 이해를 돕는 보조 이미지 도구
+ *  [요구]   1. 금융 서비스 전용 아이콘 종류 추가   2. 상태(성공/실패/주의) 아이콘 종류 추가
+ *
+ *  아이콘 원본: /images/common/ui-icons.svg (SVG 스프라이트, currentColor)
+ *    <svg class="ui-icon" aria-hidden="true"><use href="/images/common/ui-icons.svg#ic-loan"></use></svg>
+ *    또는 JS:  UiIcon.create('loan', { size: 'lg', label: '대출' })
+ *
+ *  크기   ui-icon--xs(16) | --sm(20) | (기본 24) | --lg(32) | --xl(48) | --2xl(64)
+ *  색상   기본 = 글자색(currentColor) · ui-icon--primary · --success · --error · --warning · --info · --muted
+ *  조합   .ui-icon-tile (메뉴 타일: 연한 배경 + 아이콘)
+ *         .ui-status    (상태 문구: 아이콘 + 글자 → 색상만으로 상태를 구분하지 않는다, 접근성)
+ * =============================================================================
+ */
+.ui-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    color: inherit;
+    overflow: visible;
+    /* 스프라이트 안에서 선/채움을 지정하므로 여기서는 크기·색만 다룬다 */
+}
+.ui-icon--xs  { width: 16px; height: 16px; }
+.ui-icon--sm  { width: 20px; height: 20px; }
+.ui-icon--lg  { width: 32px; height: 32px; }
+.ui-icon--xl  { width: 48px; height: 48px; }
+.ui-icon--2xl { width: 64px; height: 64px; }
+.ui-icon--em  { width: 1.25em; height: 1.25em; vertical-align: -.25em; }   /* 글자 크기에 맞춤 (버튼 안 등) */
+
+.ui-icon--primary { color: var(--ui-primary); }
+.ui-icon--success { color: var(--ui-success); }
+.ui-icon--error   { color: var(--ui-error); }
+.ui-icon--warning { color: var(--ui-warning); }
+.ui-icon--info    { color: var(--ui-info); }
+.ui-icon--muted   { color: var(--ui-text-sub); }
+
+/* ---------------------------------------------------------------- 메뉴 타일 (금융 서비스 메뉴 그리드) */
+.ui-icon-tile {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .375rem;
+    min-width: 64px;
+    font-family: var(--ui-font);
+    font-size: var(--ui-fs-xs);
+    font-weight: 600;
+    line-height: var(--ui-lh-tight);
+    color: var(--ui-text);
+    text-align: center;
+    text-decoration: none;
+    word-break: keep-all;
+}
+.ui-icon-tile__bg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--ui-primary-soft);
+    color: var(--ui-primary);
+}
+.ui-icon-tile__bg .ui-icon { width: 28px; height: 28px; }
+a.ui-icon-tile:active .ui-icon-tile__bg { background: var(--ui-primary-soft-press); transform: scale(.95); }
+a.ui-icon-tile:focus-visible { outline: none; }
+a.ui-icon-tile:focus-visible .ui-icon-tile__bg { box-shadow: var(--ui-focus-ring); }
+
+/* ---------------------------------------------------------------- 상태 문구 (아이콘 + 글자) */
+.ui-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .1875rem .625rem .1875rem .4375rem;
+    border-radius: 999px;
+    font-family: var(--ui-font);
+    font-size: var(--ui-fs-sm);
+    font-weight: 700;
+    line-height: var(--ui-lh-tight);
+    white-space: nowrap;
+}
+.ui-status .ui-icon { width: 18px; height: 18px; }
+.ui-status--success { color: var(--ui-success); background: var(--ui-success-soft); }
+.ui-status--error   { color: var(--ui-error);   background: var(--ui-error-soft); }
+.ui-status--warning { color: var(--ui-warning); background: var(--ui-warning-soft); }
+.ui-status--info    { color: var(--ui-info);    background: var(--ui-info-soft); }
+.ui-status--pending { color: var(--ui-text-sub); background: var(--ui-surface-sub); }
+
+/* 결과 화면 상단 큰 상태 아이콘 (신청 완료 / 실패 등) */
+.ui-result-icon { display: block; width: 64px; height: 64px; margin: 0 auto .75rem; }
+
+@media (forced-colors: active) {
+    .ui-icon { color: CanvasText; }
+    .ui-status, .ui-icon-tile__bg { border: 1px solid CanvasText; }
+}

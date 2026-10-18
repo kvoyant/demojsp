@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  =============================================================================
+   [CF-UI-01 / 공통#41] 공통 아이콘 스프라이트  -  /images/common/ui-icons.svg
+  -  24 x 24 그리드, 선 굵기 1.75, 둥근 끝 / 색상은 currentColor (글자색을 따라감)
+  -  사용: <svg class="ui-icon" aria-hidden="true"><use href="/images/common/ui-icons.svg#ic-loan"></use></svg>
+  -  아이콘 추가 시: symbol(id = ic-영문명) + title(한글명) 추가 → ui-icon.js CATALOG 에도 추가
+  -     (UiComponentTest 가 CATALOG 와 스프라이트 일치 여부를 검사)
+  =============================================================================
+-->
+<svg xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <!-- ============================================================ 금융 서비스 -->
+  <symbol id="ic-loan" viewBox="0 0 24 24"><title>대출</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 3h6l-1.6 3h-2.8z"/>
+      <path d="M10.6 6C6.6 8 4 11.4 4 15a6 6 0 0 0 6 6h4a6 6 0 0 0 6-6c0-3.6-2.6-7-6.6-9"/>
+      <path d="M8.6 11.6l1.3 5 2.1-3.5 2.1 3.5 1.3-5"/><path d="M8.3 14.1h7.4"/>
+    </g>
+  </symbol>
+  <symbol id="ic-deposit" viewBox="0 0 24 24"><title>예금</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 10.5c0-3.6-3.1-6-7-6s-7.5 2.4-7.5 6.4c0 2.3 1.1 4 2.8 5.1V20h2.6v-2.2c1.4.3 2.8.3 4.2 0V20h2.6v-3.4c.9-.6 1.6-1.4 2-2.3H21v-3.8z"/>
+      <path d="M10 7.9h3.6"/><path d="M4.5 11.2c-1 0-1.7-.6-1.7-1.5"/>
+      <circle cx="16" cy="10.4" r=".9" fill="currentColor" stroke="none"/>
+    </g>
+  </symbol>
+  <symbol id="ic-savings" viewBox="0 0 24 24"><title>적금</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="9.5" cy="6" rx="6" ry="2.5"/>
+      <path d="M3.5 6v4c0 1.4 2.7 2.5 6 2.5 1 0 1.9-.1 2.7-.3"/>
+      <path d="M3.5 10v4c0 1.4 2.7 2.5 6 2.5"/><path d="M15.5 6v3"/>
+      <circle cx="16.5" cy="16.5" r="4.5"/><path d="M16.5 14.6v3.8M14.6 16.5h3.8"/>
+    </g>
+  </symbol>
+  <symbol id="ic-transfer" viewBox="0 0 24 24"><title>이체</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8.5h15.5M15.5 4.5l4 4-4 4"/><path d="M20 15.5H4.5M8.5 11.5l-4 4 4 4"/>
+    </g>
+  </symbol>
+  <symbol id="ic-account" viewBox="0 0 24 24"><title>계좌·통장</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.5" y="3" width="15" height="18" rx="2"/><path d="M8.5 3v18"/>
+      <path d="M11.5 8h5M11.5 11.5h5M11.5 15h3"/>
+    </g>
+  </symbol>
+  <symbol id="ic-bank" viewBox="0 0 24 24"><title>은행·영업점</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 4l9 5.5z"/><path d="M6 12.5v5M10 12.5v5M14 12.5v5M18 12.5v5"/><path d="M3.5 20.5h17"/>
+    </g>
+  </symbol>
+  <symbol id="ic-card" viewBox="0 0 24 24"><title>카드</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 15h4"/>
+    </g>
+  </symbol>
+  <symbol id="ic-credit-score" viewBox="0 0 24 24"><title>신용점수</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.5 16.5a8.5 8.5 0 0 1 17 0"/><path d="M12 16.5l4-5"/>
+      <path d="M6.2 11l1 .8M12 8v1.3M17.8 11l-1 .8"/><path d="M4 20h16"/>
+      <circle cx="12" cy="16.5" r="1.4" fill="currentColor"/>
+    </g>
+  </symbol>
+  <symbol id="ic-interest-rate" viewBox="0 0 24 24"><title>금리</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M9 15l6-6"/>
+      <circle cx="9.3" cy="9.3" r="1.3"/><circle cx="14.7" cy="14.7" r="1.3"/>
+    </g>
+  </symbol>
+  <symbol id="ic-limit-inquiry" viewBox="0 0 24 24"><title>한도조회</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.5" cy="10.5" r="7"/><path d="M15.6 15.6L20.5 20.5"/>
+      <path d="M7.4 8.1l1.1 4.6 2-3.2 2 3.2 1.1-4.6"/><path d="M7.2 10.4h6.6"/>
+    </g>
+  </symbol>
+  <symbol id="ic-repayment" viewBox="0 0 24 24"><title>상환</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.2v4.3h-4.3"/>
+      <path d="M8.7 9.4l1.3 5.1 2-3.4 2 3.4 1.3-5.1"/><path d="M8.4 12h7.2"/>
+    </g>
+  </symbol>
+  <symbol id="ic-refinance" viewBox="0 0 24 24"><title>대환</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7.5 3.5L4 7l3.5 3.5"/><path d="M4 7h11a4.5 4.5 0 0 1 4.5 4.5"/>
+      <path d="M16.5 20.5L20 17l-3.5-3.5"/><path d="M20 17H9a4.5 4.5 0 0 1-4.5-4.5"/>
+    </g>
+  </symbol>
+  <symbol id="ic-auto-loan" viewBox="0 0 24 24"><title>오토(자동차)담보대출</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5.2 17H3.5v-4.3l2.1-4.9A2 2 0 0 1 7.4 6.6h9.2a2 2 0 0 1 1.8 1.2l2.1 4.9V17h-1.7"/>
+      <path d="M9.3 17h5.4"/><path d="M3.8 12.5h16.4"/>
+      <circle cx="7.3" cy="17" r="2"/><circle cx="16.7" cy="17" r="2"/>
+    </g>
+  </symbol>
+  <symbol id="ic-mortgage" viewBox="0 0 24 24"><title>주택(부동산)담보대출</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 11L12 3.8l9 7.2"/><path d="M5.5 9.3V20.5h13V9.3"/>
+      <path d="M8.9 11.8l1.1 4.6 2-3.1 2 3.1 1.1-4.6"/><path d="M8.7 14h6.6"/>
+    </g>
+  </symbol>
+  <symbol id="ic-calculator" viewBox="0 0 24 24"><title>계산기(이자계산)</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="3.5" rx=".6"/>
+      <g fill="currentColor" stroke="none">
+        <circle cx="8.8" cy="13.3" r="1"/><circle cx="12" cy="13.3" r="1"/><circle cx="15.2" cy="13.3" r="1"/>
+        <circle cx="8.8" cy="17.2" r="1"/><circle cx="12" cy="17.2" r="1"/><circle cx="15.2" cy="17.2" r="1"/>
+      </g>
+    </g>
+  </symbol>
+  <symbol id="ic-document" viewBox="0 0 24 24"><title>서류제출</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>
+      <path d="M8.5 12.5h7M8.5 16h5"/>
+    </g>
+  </symbol>
+  <symbol id="ic-contract" viewBox="0 0 24 24"><title>전자약정·서명</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v2.5"/><path d="M14 3v5h5"/>
+      <path d="M8.5 12h5M8.5 15.5h2.5"/>
+      <path d="M19.4 13.6a1.5 1.5 0 0 1 2.1 2.1L16 21.2l-2.8.7.7-2.8z"/>
+    </g>
+  </symbol>
+  <symbol id="ic-identity" viewBox="0 0 24 24"><title>본인인증·신분증</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5"/>
+      <circle cx="8.5" cy="10.6" r="2"/><path d="M5.5 16a3 3 0 0 1 6 0"/>
+      <path d="M14 10h4.5M14 13.5h3"/>
+    </g>
+  </symbol>
+  <symbol id="ic-security" viewBox="0 0 24 24"><title>보안</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z"/>
+      <path d="M8.8 12.1l2.2 2.2 4.2-4.4"/>
+    </g>
+  </symbol>
+  <symbol id="ic-otp" viewBox="0 0 24 24"><title>OTP·인증번호</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>
+      <g fill="currentColor" stroke="none"><circle cx="9.5" cy="10" r="1.1"/><circle cx="12" cy="10" r="1.1"/><circle cx="14.5" cy="10" r="1.1"/></g>
+    </g>
+  </symbol>
+  <symbol id="ic-calendar" viewBox="0 0 24 24"><title>납입일·만기일</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/>
+      <g fill="currentColor" stroke="none"><circle cx="8.3" cy="13.3" r="1"/><circle cx="12" cy="13.3" r="1"/><circle cx="15.7" cy="13.3" r="1"/><circle cx="8.3" cy="16.8" r="1"/></g>
+    </g>
+  </symbol>
+  <symbol id="ic-customer-center" viewBox="0 0 24 24"><title>고객센터·상담</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/>
+      <path d="M4.5 13.5h2a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z"/>
+      <path d="M19.5 13.5h-2a1 1 0 0 0-1 1V18a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1z"/>
+      <path d="M18.5 19c0 1.3-1.6 2.2-4.2 2.2H13"/>
+    </g>
+  </symbol>
+  <symbol id="ic-notice" viewBox="0 0 24 24"><title>공지·알림</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.5 10v4a1 1 0 0 0 1 1H7l8 4.5v-15L7 9H4.5a1 1 0 0 0-1 1z"/>
+      <path d="M7 15l1.2 4.5h2.3l-.8-3.4"/><path d="M18.5 9.3a3.8 3.8 0 0 1 0 5.4"/>
+    </g>
+  </symbol>
+  <symbol id="ic-event" viewBox="0 0 24 24"><title>혜택·이벤트</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.5 11h15v9a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/><rect x="3.5" y="7.5" width="17" height="3.5" rx="1"/>
+      <path d="M12 7.5V21"/>
+      <path d="M12 7.5C10.6 4.2 7.3 4 7.5 6.1c.1 1.2 2.4 1.4 4.5 1.4zM12 7.5c1.4-3.3 4.7-3.5 4.5-1.4-.1 1.2-2.4 1.4-4.5 1.4z"/>
+    </g>
+  </symbol>
+
+  <!-- ============================================================ 상태 (선형 - 문구 옆, 목록) -->
+  <symbol id="ic-status-success" viewBox="0 0 24 24"><title>성공</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.8 2.8L16 9.7"/>
+    </g>
+  </symbol>
+  <symbol id="ic-status-error" viewBox="0 0 24 24"><title>실패</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>
+    </g>
+  </symbol>
+  <symbol id="ic-status-warning" viewBox="0 0 24 24"><title>주의</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.3 4.6a2 2 0 0 1 3.4 0l7.5 13a2 2 0 0 1-1.7 3H4.5a2 2 0 0 1-1.7-3z"/><path d="M12 9.5V14"/>
+      <circle cx="12" cy="17.1" r="1.1" fill="currentColor" stroke="none"/>
+    </g>
+  </symbol>
+  <symbol id="ic-status-info" viewBox="0 0 24 24"><title>안내</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/>
+      <circle cx="12" cy="7.9" r="1.1" fill="currentColor" stroke="none"/>
+    </g>
+  </symbol>
+  <symbol id="ic-status-pending" viewBox="0 0 24 24"><title>진행중·대기</title>
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M12 7.3V12l3.2 2"/>
+    </g>
+  </symbol>
+
+  <!-- ============================================================ 상태 (채움 - 결과 화면, Alert 상단) -->
+  <symbol id="ic-status-success-fill" viewBox="0 0 24 24"><title>성공</title>
+    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+    <path d="M7.6 12.3l3 3 5.8-6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-status-error-fill" viewBox="0 0 24 24"><title>실패</title>
+    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+    <path d="M8.7 8.7l6.6 6.6M15.3 8.7l-6.6 6.6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-status-warning-fill" viewBox="0 0 24 24"><title>주의</title>
+    <path d="M10.2 3.9a2.1 2.1 0 0 1 3.6 0l8.1 14a2.1 2.1 0 0 1-1.8 3.1H3.9a2.1 2.1 0 0 1-1.8-3.1z" fill="currentColor"/>
+    <path d="M12 9v4.8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="12" cy="17.2" r="1.3" fill="#fff"/>
+  </symbol>
+  <symbol id="ic-status-info-fill" viewBox="0 0 24 24"><title>안내</title>
+    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+    <path d="M12 10.8v6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="12" cy="7.4" r="1.35" fill="#fff"/>
+  </symbol>
+  <symbol id="ic-status-pending-fill" viewBox="0 0 24 24"><title>진행중·대기</title>
+    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+    <path d="M12 6.8V12l3.4 2.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</defs>
+</svg>

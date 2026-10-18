@@ -340,3 +340,20 @@ common:
           - { label: "샘플 화면", url: "/common/ui/button", type: PAGE }
           - { label: "Button CSS", url: "/css/common/ui-button.css", type: PAGE }
           - { label: "Button JS", url: "/js/common/ui-button.js", type: PAGE }
+      - cf-id: CF-UI-01
+        req-id: 공통#41
+        title: Icon 공통 컴포넌트 (금융 서비스 · 상태 아이콘)
+        category: 공통 요구사항 > Icon
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP, PC WEB, 모집인WEB, ADMIN]
+        features:
+          - 금융 서비스 전용 아이콘 24종 (대출·예적금·이체·한도조회·상환·대환·오토/주택담보·서류·본인인증 등)
+          - 상태 아이콘 10종 (성공/실패/주의/안내/진행중 × 선형·채움형)
+          - SVG 스프라이트 1개 파일 + currentColor → 화면별 이미지 제작 없이 크기 6단계·색상 톤 적용
+          - 상태 문구(.ui-status: 모양+색+글자), 메뉴 타일, 장식/의미 아이콘 접근성(aria) 자동 처리
+        guide: docs/COMMON_UI_COMPONENT_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/ui/icon", type: PAGE }
+          - { label: "아이콘 스프라이트", url: "/images/common/ui-icons.svg", type: PAGE }
+          - { label: "Icon JS", url: "/js/common/ui-icon.js", type: PAGE }

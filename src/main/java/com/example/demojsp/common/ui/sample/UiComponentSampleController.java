@@ -33,6 +33,12 @@ public class UiComponentSampleController {
         return "common/ui/button";
     }
 
+    /** 공통#41 Icon 샘플 (WEB-INF/views/common/ui/icon.jsp) */
+    @GetMapping("/common/ui/icon")
+    public String icon() {
+        return "common/ui/icon";
+    }
+
     /** 샘플 지연 상한 (요청 스레드 점유 방지) */
     static final long MAX_DEMO_DELAY_MS = 3000;
 }
