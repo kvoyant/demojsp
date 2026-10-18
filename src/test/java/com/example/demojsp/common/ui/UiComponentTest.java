@@ -232,6 +232,31 @@ class UiComponentTest {
         assertThat(js).as("세션 만료 시 알럿을 닫은 뒤 이동").contains("{ type: 'warning' }).then(function () {\n                    location.href = '/login';");
     }
 
+    @Test
+    @DisplayName("application.yaml 테스트 허브 - features/channels 는 모두 문자열 (따옴표 없는 ': ' 로 인한 기동 실패 방지)")
+    void testHubYamlFeaturesAreStrings() throws Exception {
+        String yaml;
+        try (InputStream in = UiComponentTest.class.getResourceAsStream("/application.yaml")) {
+            assertThat(in).isNotNull();
+            yaml = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
+        org.yaml.snakeyaml.Yaml parser = new org.yaml.snakeyaml.Yaml();
+        java.util.Map<String, Object> root = parser.load(yaml);
+        @SuppressWarnings("unchecked")
+        java.util.List<java.util.Map<String, Object>> items = (java.util.List<java.util.Map<String, Object>>)
+                ((java.util.Map<String, Object>) ((java.util.Map<String, Object>) root.get("common")).get("test-hub")).get("items");
+        assertThat(items).isNotEmpty();
+        for (java.util.Map<String, Object> item : items) {
+            for (String key : new String[]{"features", "channels"}) {
+                Object list = item.get(key);
+                if (list == null) continue;
+                for (Object v : (java.util.List<?>) list) {
+                    assertThat(v).as(item.get("req-id") + " " + key + " 항목은 문자열이어야 함 (': ' 포함 시 따옴표)").isInstanceOf(String.class);
+                }
+            }
+        }
+    }
+
     static String block(String css, String selector) {
         int s = css.indexOf(selector);
         assertThat(s).as(selector).isGreaterThanOrEqualTo(0);
