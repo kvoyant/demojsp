@@ -16,6 +16,7 @@ public enum ResumeErrorCode {
     TOO_LONG(HttpStatus.BAD_REQUEST, "RSM-102", "입력 가능한 글자 수를 초과했습니다."),
     INVALID_URL(HttpStatus.BAD_REQUEST, "RSM-103", "이어하기 링크 형식이 올바르지 않습니다."),
     INVALID_CODE(HttpStatus.BAD_REQUEST, "RSM-104", "상품구분/업무코드/회사코드 값이 올바르지 않습니다."),
+    DEPOSIT_OWN_ONLY(HttpStatus.BAD_REQUEST, "RSM-105", "수신상품 이어하기는 당행 상품만 등록할 수 있습니다."),
 
     LOGIN_REQUIRED(HttpStatus.UNAUTHORIZED, "RSM-401", "로그인 후 이용할 수 있습니다."),
     DEMO_ONLY(HttpStatus.FORBIDDEN, "RSM-402", "테스트(local) 환경에서만 사용할 수 있는 기능입니다.");

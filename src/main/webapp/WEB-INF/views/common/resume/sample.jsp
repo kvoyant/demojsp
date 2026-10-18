@@ -105,7 +105,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold" for="customer">고객 (local 테스트 - 로그인 시 로그인 고객 우선)</label>
                             <select id="customer" class="form-select form-select-sm">
-                                <option value="customer01">customer01 - 진행중 3건 (여신2·수신1) + 완료·만료 각 1</option>
+                                <option value="customer01">customer01 - 진행중 4건 (여신2·수신2) + 완료·만료 각 1</option>
                                 <option value="customer02">customer02 - 수신 1건</option>
                                 <option value="customer03">customer03 - 이어하기 없음</option>
                             </select>

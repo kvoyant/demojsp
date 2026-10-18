@@ -316,9 +316,10 @@ common:
       - { code: PARTNER_A, name: 제휴플랫폼A,  logo-url: /images/common/resume/logo-partner-sample.svg }
       - { code: PARTNER_B, name: 제휴플랫폼B }
     seed:
-      # ---- customer01 (로그인 샘플 계정과 동일 ID): 진행중 3건(여신2·수신1) + 완료 1 + 만료 1
+      # ---- customer01 (로그인 샘플 계정과 동일 ID): 진행중 4건(여신2·수신2) + 완료 1 + 만료 1
       - { customer-id: customer01, product-type: LOAN, biz-code: LOAN_APPLY, biz-name: 대출신청, product-code: PS_SMART, product-name: 페퍼스마트대출, partner-code: PARTNER_A, step-name: 서류제출, step-no: 3, total-steps: 5, resume-url: "/common/resume/landing?biz=LOAN_APPLY&product=PS_SMART&step=3", started-minutes-ago: 1500, last-activity-minutes-ago: 20, expire-days: 7 }
       - { customer-id: customer01, product-type: DEPOSIT, biz-code: DEPOSIT_OPEN, biz-name: 계좌개설, product-code: PS_PARKING4, product-name: 페퍼스 파킹통장4, partner-code: OWN, step-name: 본인인증, step-no: 2, total-steps: 4, resume-url: "/common/resume/landing?biz=DEPOSIT_OPEN&product=PS_PARKING4&step=2", started-minutes-ago: 3000, last-activity-minutes-ago: 2880, expire-days: 30 }
+      - { customer-id: customer01, product-type: DEPOSIT, biz-code: DEPOSIT_OPEN, biz-name: 계좌개설, product-code: PS_TIME_DEPOSIT, product-name: 페퍼스 정기예금, partner-code: OWN, step-name: 가입정보입력, step-no: 3, total-steps: 5, resume-url: "/common/resume/landing?biz=DEPOSIT_OPEN&product=PS_TIME_DEPOSIT&step=3", started-minutes-ago: 4500, last-activity-minutes-ago: 4000, expire-days: 30 }
       - { customer-id: customer01, product-type: LOAN, biz-code: LOAN_APPLY, biz-name: 대출신청, product-code: PS_BIZ_MORTGAGE, product-name: 페퍼스 사업자담보대출, partner-code: OWN, step-name: 담보정보입력, step-no: 2, total-steps: 6, resume-url: "/common/resume/landing?biz=LOAN_APPLY&product=PS_BIZ_MORTGAGE&step=2", started-minutes-ago: 8000, last-activity-minutes-ago: 7200, expire-days: 30 }
       - { customer-id: customer01, product-type: DEPOSIT, biz-code: DEPOSIT_OPEN, biz-name: 계좌개설, product-code: PS_2030, product-name: 페퍼스 2030적금, step-name: 완료, step-no: 4, total-steps: 4, resume-url: "/common/resume/landing?biz=DEPOSIT_OPEN&product=PS_2030&step=4", status: COMPLETED, started-minutes-ago: 600, last-activity-minutes-ago: 10 }
       - { customer-id: customer01, product-type: LOAN, biz-code: LOAN_APPLY, biz-name: 대출신청, product-code: PS_OLD, product-name: "[만료] 지난 대출신청", partner-code: PARTNER_B, step-name: 한도조회, step-no: 1, total-steps: 5, resume-url: "/common/resume/landing?biz=LOAN_APPLY&product=PS_OLD&step=1", started-minutes-ago: 14400, last-activity-minutes-ago: 5, expire-days: 7 }
@@ -594,3 +595,20 @@ common:
           - { label: "상품목록(ADMIN)", url: "/common/product/admin", type: PAGE }
           - { label: "홈 표시 현황 API", url: "/api/common/product-admin/home-status", type: API }
           - { label: "수신상품목록 API", url: "/api/common/product-admin/products?kind=DEPOSIT", type: API }
+      - cf-id: CF-BC-13
+        req-id: 공통#49
+        title: 저축 - 이어하기 (수신상품만 · 최신 1건 · 건수 · 당행 로고)
+        category: 공통 요구사항 > 저축 - 이어하기
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP]
+        features:
+          - "저축 탭 상단 카드 - 홈 이어하기(공통#43) 컴포넌트를 scope=DEPOSIT 로 재사용"
+          - "수신상품 이어하기 중 최신 1건 + 수신 건수, [더보기] → 신청현황조회(수신), [이어하기] → 해당 상품 신청 단계"
+          - "수신상품은 당행 상품만 등록(제휴사 코드 RSM-105) → 당행 로고, 회사명은 회사명 DB"
+          - "카드 제목 scope 별 기본값 (저축 탭: 진행 중인 저축 가입)"
+        guide: docs/COMMON_RESUME_GUIDE.md
+        links:
+          - { label: "저축 탭 샘플", url: "/common/savings/sample", type: PAGE }
+          - { label: "저축 이어하기 API", url: "/api/common/resume?scope=DEPOSIT", type: API }
+          - { label: "신청현황조회(수신)", url: "/common/resume/status?scope=DEPOSIT", type: PAGE }

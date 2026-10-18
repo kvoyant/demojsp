@@ -45,6 +45,8 @@ import java.util.regex.Pattern;
  * </ol>
  *
  * <p>홈(전체) / 저축(수신, 공통#49) / 대출(여신, 공통#60) 은 {@link ResumeScope} 만 바꿔 같은 서비스를 쓴다.
+ * <p><b>공통#49 저축 - 이어하기</b>: scope=DEPOSIT → 수신상품 이어하기 중 최신 1건 + 수신 건수 + [더보기](신청현황조회 수신 탭)
+ * + [이어하기]. 수신상품은 당행 상품만 등록 가능(당행 로고).
  */
 @Service
 public class ResumeService {
@@ -257,8 +259,11 @@ public class ResumeService {
         String productCode = code(req.productCode(), "상품코드");
         String partnerCode = req.partnerCode() == null || req.partnerCode().isBlank()
                 ? properties.getOwnPartnerCode() : code(req.partnerCode(), "회사코드");
-        if (partnerRepository.findByCode(partnerCode).isEmpty()) {
-            throw new ResumeException(ResumeErrorCode.INVALID_CODE, "회사코드");
+        Partner partner = partnerRepository.findByCode(partnerCode)
+                .orElseThrow(() -> new ResumeException(ResumeErrorCode.INVALID_CODE, "회사코드"));
+        // 공통#49 저축 이어하기: "수신상품만 취급" + "당행 상품일 경우 당행 로고" → 수신은 당행 상품만 (제휴 수신상품 없음)
+        if (type == ProductType.DEPOSIT && !partner.own()) {
+            throw new ResumeException(ResumeErrorCode.DEPOSIT_OWN_ONLY, "회사코드");
         }
         String bizName = required(req.bizName(), "업무명", MAX_BIZ_NAME);
         String productName = required(req.productName(), "상품명", MAX_PRODUCT_NAME);

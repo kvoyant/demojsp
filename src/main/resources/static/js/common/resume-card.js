@@ -20,7 +20,7 @@
  *  옵션
  *    scope        ALL | DEPOSIT | LOAN (기본 ALL)
  *    params       API·더보기에 붙일 추가 파라미터 { demoCustomer: 'customer02' } (local 샘플 전용)
- *    title        카드 제목 (기본 "진행 중인 신청")
+ *    title        카드 제목 (기본: ALL "진행 중인 신청" / DEPOSIT "진행 중인 저축 가입" / LOAN "진행 중인 대출 신청")
  *    go(url)      이동 함수 (APP 네이티브 화면전환 브릿지 등, 기본 location.assign)
  *    onLoad(summary) / onEmpty(summary) / onError(err) / onNotResumable(res)
  *
@@ -40,6 +40,8 @@
     'use strict';
 
     var API = '/api/common/resume';
+    /** scope 별 기본 제목 (홈 공통#43 / 저축 공통#49 / 대출 공통#60) */
+    var TITLES = { ALL: '진행 중인 신청', DEPOSIT: '진행 중인 저축 가입', LOAN: '진행 중인 대출 신청' };
     var SPRITE = '/images/common/ui-icons.svg';
     var SVG_NS = 'http://www.w3.org/2000/svg';
     var seq = 0;
@@ -146,7 +148,7 @@
         var head = el('div', 'ui-resume__head');
         var title = el('h2', 'ui-resume__title');
         title.id = id + '-t';
-        title.appendChild(document.createTextNode(opts.title || '진행 중인 신청'));
+        title.appendChild(document.createTextNode(opts.title || TITLES[s.scope] || TITLES.ALL));
         var cnt = el('span', 'ui-resume__count', String(s.count));
         cnt.setAttribute('aria-label', '총 ' + s.count + '건');
         title.appendChild(cnt);
