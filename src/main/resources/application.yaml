@@ -198,6 +198,77 @@ common:
       - { biz-code: IDENTITY_ID_CARD, code: FACE_BIO,        title: "생체(얼굴)정보 수집·이용 동의", required: true, version: "1.0", sort-order: 2, content: "안면인증을 위해 촬영한 얼굴 이미지와 신분증 사진을 비교하며, 인증 완료 즉시 파기합니다." }
 
 # =============================================================================
+# [CF-BC-20 / 공통#39] 배너팝업 공통모듈 (com.example.demojsp.common.banner)
+#  - 게시기간이 겹치는 배너 2건 이상 → 표시순서 정렬 후 전부 노출, 화면은 좌우 슬라이드
+#  - seed = "디지털어드민 배너팝업목록에 등록된 배너" 를 흉내낸 초기 데이터 (운영은 DB 구현체로 교체)
+#  - 게시기간: 기동일 00:00 기준 상대 일수 (start-day-offset ~ end-day-offset, 종료 미포함)
+#  - 샘플 화면: http://localhost:8080/common/banner/sample
+# =============================================================================
+  banner-popup:
+    admin-api-open: true      # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+    max-display-count: 10     # 한 번에 노출할 최대 건수 (0 = 제한 없음) - 요구사항 미정, 수행사 제안값
+    seed:
+      # ---- 게시중 · APP · 기간 겹침 3건 (표시순서 2 → 1 → 3 순으로 등록해도 1,2,3 순서로 슬라이드)
+      - category: EMERGENCY_GENERAL
+        title: "[긴급] 보이스피싱 사칭 문자 주의 안내"
+        content: |
+          최근 당행을 사칭한 대출 권유 문자가 발송되고 있습니다.
+          당행은 문자로 앱 설치나 개인정보 입력을 요구하지 않습니다.
+          의심 문자는 즉시 삭제하시고 고객센터로 신고해 주세요.
+        link-url: /board/list
+        start-day-offset: -1
+        end-day-offset: 5
+        display-order: 2
+      - category: EMERGENCY_SYSTEM
+        title: "[시스템 점검] 전산 시스템 정기점검 안내"
+        content: |
+          보다 안정적인 서비스 제공을 위해 시스템 점검을 실시합니다.
+          점검시간 동안 이체·대출신청 등 일부 서비스 이용이 제한됩니다.
+          이용에 불편을 드려 죄송합니다.
+        start-day-offset: 0
+        end-day-offset: 3
+        display-order: 1
+      - category: EVENT
+        title: "비대면 신용대출 금리우대 이벤트"
+        content: |
+          앱으로 신용대출을 신청하시면 최대 0.3%p 금리우대 혜택을 드립니다.
+          (이벤트 기간 내 신규 약정 고객 대상)
+        link-url: /common/terms/sample
+        start-day-offset: -3
+        end-day-offset: 10
+        display-order: 3
+      # ---- 게시예정 (오늘은 미노출, 미리보기 기준시각을 +3일 이후로 바꾸면 노출)
+      - category: NOTICE
+        title: "개인정보처리방침 개정 안내"
+        content: "개정된 개인정보처리방침이 시행됩니다. 주요 변경사항을 확인해 주세요."
+        start-day-offset: 3
+        end-day-offset: 10
+        display-order: 1
+      # ---- 게시종료 (미노출)
+      - category: NOTICE
+        title: "추석 연휴 고객센터 운영 안내"
+        content: "연휴 기간 고객센터 상담 업무가 중단됩니다."
+        start-day-offset: -10
+        end-day-offset: -2
+        display-order: 1
+      # ---- PC WEB 전용 (APP 미노출)
+      - category: NOTICE
+        title: "인터넷뱅킹 화면 개편 안내"
+        content: "PC 인터넷뱅킹 화면이 새롭게 바뀌었습니다."
+        channels: [PC_WEB]
+        start-day-offset: -1
+        end-day-offset: 7
+        display-order: 1
+      # ---- 미사용 (기간 안이지만 미노출)
+      - category: EVENT
+        title: "[미사용] 예금 특판 사전 안내"
+        content: "특판 예금 사전 알림 신청을 받습니다."
+        start-day-offset: -1
+        end-day-offset: 7
+        display-order: 4
+        use: false
+
+# =============================================================================
 # 공통모듈 테스트 허브 - http://localhost:8080/common/test-hub
 #  요구사항이 추가되면 아래 items 에 블록만 추가하면 목록에 나타난다.
 # =============================================================================
@@ -235,3 +306,20 @@ common:
           - { label: "샘플 화면", url: "/common/terms/sample", type: PAGE }
           - { label: "회원가입 약관 API", url: "/api/common/terms/SIGN_UP", type: API }
           - { label: "업무코드 목록(ADMIN)", url: "/api/common/terms-admin/biz-codes", type: API }
+      - cf-id: CF-BC-20
+        req-id: 공통#39
+        title: 배너팝업 복수 노출 (표시순서 · 좌우 슬라이드)
+        category: 공통 요구사항 > 배너팝업
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP, ADMIN]
+        features:
+          - 게시일자가 겹치는 배너 2건 이상 → 1건만 노출되던 AS-IS 해소, 전부 노출
+          - ADMIN 표시순서 적용 (동일 순서는 최신 게시 시작일시 우선)
+          - 좌우 슬라이드(스와이프·화살표·키보드), 인디케이터 "1 / 3", 오늘 하루 보지 않기
+          - ADMIN 등록·수정 서버 검증 (기간·표시순서·URL·대체텍스트), 기준시각 노출 미리보기
+        guide: docs/COMMON_BANNER_POPUP_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/banner/sample", type: PAGE }
+          - { label: "APP 노출 API", url: "/api/common/banner-popups?channel=APP", type: API }
+          - { label: "배너팝업목록(ADMIN)", url: "/api/common/banner-admin/popups", type: API }

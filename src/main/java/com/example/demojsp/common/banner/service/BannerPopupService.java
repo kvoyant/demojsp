@@ -1,0 +1,313 @@
+package com.example.demojsp.common.banner.service;
+
+import com.example.demojsp.common.banner.config.BannerPopupProperties;
+import com.example.demojsp.common.banner.domain.BannerCategory;
+import com.example.demojsp.common.banner.domain.BannerChannel;
+import com.example.demojsp.common.banner.domain.BannerDisplayList;
+import com.example.demojsp.common.banner.domain.BannerPopup;
+import com.example.demojsp.common.banner.domain.BannerPopupAdminView;
+import com.example.demojsp.common.banner.domain.BannerPopupRequest;
+import com.example.demojsp.common.banner.domain.BannerPopupType;
+import com.example.demojsp.common.banner.domain.BannerPopupView;
+import com.example.demojsp.common.banner.exception.BannerErrorCode;
+import com.example.demojsp.common.banner.exception.BannerException;
+import com.example.demojsp.common.banner.store.BannerPopupRepository;
+import com.example.demojsp.common.banner.store.InMemoryBannerPopupRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * [CF-BC-20 / 공통#39] 배너팝업 공통 서비스.
+ *
+ * <p><b>AS-IS 문제</b>: 디지털어드민에서 같은 시간대에 배너팝업을 여러 건 등록하고 표시순서를 지정해도 APP 에는 1건만 노출 →
+ * 일정이 겹치는 복수 공지(일반 긴급공지, 시스템 긴급공지 등) 중 일부를 고객이 보지 못함.
+ *
+ * <p><b>TO-BE</b>
+ * <ol>
+ *   <li>게시기간이 겹치는 배너가 2건 이상이면 <b>모두</b> 노출 대상으로 조회하고 ADMIN 표시순서로 정렬
+ *       ({@link BannerPopup#DISPLAY_ORDER})</li>
+ *   <li>화면은 응답의 {@code slide=true} 일 때 좌우 슬라이드로 여러 건을 넘겨 확인 ({@code /js/common/banner-popup.js})</li>
+ * </ol>
+ *
+ * <p>ADMIN 등록/수정 시 서버측 Validator 로 기간·표시순서·URL·대체텍스트를 강제한다 (CF-BC-20 구현 방안).
+ */
+@Service
+public class BannerPopupService {
+
+    private static final Logger log = LoggerFactory.getLogger(BannerPopupService.class);
+    /** 감사 로그 (배너 등록·수정·삭제 이력) - 운영에서 별도 파일로 분리 권장 */
+    private static final Logger audit = LoggerFactory.getLogger("AUDIT.BANNER");
+
+    static final int MAX_TITLE = 50;
+    static final int MAX_CONTENT = 1000;
+    static final int MAX_ALT = 100;
+    static final int MIN_ORDER = 1;
+    static final int MAX_ORDER = 999;
+
+    public static final String STATUS_ON = "게시중";
+    public static final String STATUS_READY = "게시예정";
+    public static final String STATUS_END = "게시종료";
+    public static final String STATUS_OFF = "미사용";
+
+    private final BannerPopupRepository repository;
+    private final BannerPopupProperties properties;
+    private final Clock clock;
+
+    @Autowired
+    public BannerPopupService(BannerPopupRepository repository, BannerPopupProperties properties) {
+        this(repository, properties, Clock.systemDefaultZone());
+    }
+
+    public BannerPopupService(BannerPopupRepository repository, BannerPopupProperties properties, Clock clock) {
+        this.repository = repository;
+        this.properties = properties;
+        this.clock = clock;
+        // 메모리 저장소일 때만 seed 적재 (DB 구현체에는 운영 데이터가 있으므로 넣지 않는다)
+        if (repository instanceof InMemoryBannerPopupRepository && repository.findAll().isEmpty()) {
+            loadSeed();
+        }
+    }
+
+    // ------------------------------------------------------------------ 고객 화면 노출
+
+    /** 현재 시각 기준 노출 대상 (고객 화면) */
+    public BannerDisplayList displayable(String channel) {
+        return displayable(channel, LocalDateTime.now(clock));
+    }
+
+    /**
+     * 기준시각·채널의 노출 대상 배너.
+     * <p>게시기간 안 + 사용 + 채널 일치 배너를 <b>전부</b> 조회 → 표시순서 정렬 → 최대 노출 건수 적용.
+     */
+    public BannerDisplayList displayable(String channel, LocalDateTime at) {
+        BannerChannel ch = parseChannel(channel);
+        List<BannerPopup> targets = repository.findAll().stream()
+                .filter(b -> b.displayableAt(at, ch))
+                .sorted(BannerPopup.DISPLAY_ORDER)
+                .toList();
+
+        int max = properties.getMaxDisplayCount();
+        int truncated = 0;
+        if (max > 0 && targets.size() > max) {
+            truncated = targets.size() - max;
+            log.warn("[배너팝업] 노출 대상 {}건 중 표시순서 상위 {}건만 노출 (channel={}, at={})", targets.size(), max, ch, at);
+            targets = targets.subList(0, max);
+        }
+        List<BannerPopupView> items = targets.stream().map(BannerPopupView::of).toList();
+        return new BannerDisplayList(ch.name(), BannerSupport.formatFull(at), items.size(), items.size() >= 2, truncated, items);
+    }
+
+    // ------------------------------------------------------------------ ADMIN
+
+    /** ADMIN 배너팝업목록 (게시상태·중복게시 정보 포함). 정렬: 게시중 → 게시예정 → 미사용 → 게시종료, 같은 상태 안에서는 표시순서 */
+    public List<BannerPopupAdminView> adminList() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        List<BannerPopup> all = repository.findAll();
+        List<BannerPopupAdminView> rows = new ArrayList<>();
+        for (BannerPopup b : all) {
+            rows.add(toAdminView(b, all, now));
+        }
+        List<String> statusOrder = List.of(STATUS_ON, STATUS_READY, STATUS_OFF, STATUS_END);
+        rows.sort(Comparator.<BannerPopupAdminView>comparingInt(r -> statusOrder.indexOf(r.status()))
+                .thenComparingInt(BannerPopupAdminView::displayOrder)
+                .thenComparing(BannerPopupAdminView::startAt, Comparator.reverseOrder())
+                .thenComparingLong(BannerPopupAdminView::id));
+        return rows;
+    }
+
+    public BannerPopupAdminView adminDetail(long id) {
+        BannerPopup b = find(id);
+        return toAdminView(b, repository.findAll(), LocalDateTime.now(clock));
+    }
+
+    public BannerPopupAdminView register(BannerPopupRequest req, String adminId) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        BannerPopup b = validate(req, repository.nextId(), now, adminId, now, adminId);
+        repository.save(b);
+        audit.info("[배너팝업 등록] id={} type={} category={} channels={} period={}~{} order={} by={}",
+                b.id(), b.popupType(), b.category(), b.channels(), b.startAt(), b.endAt(), b.displayOrder(), adminId);
+        return adminDetail(b.id());
+    }
+
+    public BannerPopupAdminView update(long id, BannerPopupRequest req, String adminId) {
+        BannerPopup old = find(id);
+        BannerPopup b = validate(req, id, old.registeredAt(), old.registeredBy(), LocalDateTime.now(clock), adminId);
+        repository.save(b);
+        audit.info("[배너팝업 수정] id={} period={}~{} order={} use={} by={}",
+                id, b.startAt(), b.endAt(), b.displayOrder(), b.use(), adminId);
+        return adminDetail(id);
+    }
+
+    /** 사용여부만 변경 (목록에서 즉시 게시중지/재게시) */
+    public BannerPopupAdminView changeUse(long id, boolean use, String adminId) {
+        BannerPopup o = find(id);
+        BannerPopup b = new BannerPopup(o.id(), o.popupType(), o.category(), o.channels(), o.title(), o.content(),
+                o.imageUrl(), o.altText(), o.linkUrl(), o.startAt(), o.endAt(), o.displayOrder(), use,
+                o.registeredAt(), o.registeredBy(), LocalDateTime.now(clock), adminId);
+        repository.save(b);
+        audit.info("[배너팝업 사용여부] id={} use={} by={}", id, use, adminId);
+        return adminDetail(id);
+    }
+
+    public void delete(long id, String adminId) {
+        if (!repository.delete(id)) {
+            throw new BannerException(BannerErrorCode.BANNER_NOT_FOUND);
+        }
+        audit.info("[배너팝업 삭제] id={} by={}", id, adminId);
+    }
+
+    /** ADMIN 화면 선택값 (배너팝업구분 / 공지유형 / 채널) */
+    public Map<String, Map<String, String>> codes() {
+        Map<String, Map<String, String>> codes = new LinkedHashMap<>();
+        Map<String, String> types = new LinkedHashMap<>();
+        for (BannerPopupType t : BannerPopupType.values()) types.put(t.name(), t.getLabel());
+        Map<String, String> categories = new LinkedHashMap<>();
+        for (BannerCategory c : BannerCategory.values()) categories.put(c.name(), c.getLabel());
+        Map<String, String> channels = new LinkedHashMap<>();
+        for (BannerChannel c : BannerChannel.values()) channels.put(c.name(), c.getLabel());
+        codes.put("popupTypes", types);
+        codes.put("categories", categories);
+        codes.put("channels", channels);
+        return codes;
+    }
+
+    // ------------------------------------------------------------------ 내부
+
+    private BannerPopup find(long id) {
+        return repository.findById(id).orElseThrow(() -> new BannerException(BannerErrorCode.BANNER_NOT_FOUND));
+    }
+
+    private BannerPopupAdminView toAdminView(BannerPopup b, List<BannerPopup> all, LocalDateTime now) {
+        int overlap = 0;
+        boolean orderConflict = false;
+        for (BannerPopup o : all) {
+            if (o.id() != b.id() && o.use() && o.channelOverlaps(b) && o.periodOverlaps(b)) {
+                overlap++;
+                orderConflict |= o.displayOrder() == b.displayOrder();
+            }
+        }
+        return BannerPopupAdminView.of(b, status(b, now), overlap, orderConflict);
+    }
+
+    static String status(BannerPopup b, LocalDateTime now) {
+        if (!b.use()) return STATUS_OFF;
+        if (now.isBefore(b.startAt())) return STATUS_READY;
+        if (!now.isBefore(b.endAt())) return STATUS_END;
+        return STATUS_ON;
+    }
+
+    static BannerChannel parseChannel(String channel) {
+        if (channel == null || channel.isBlank()) {
+            throw new BannerException(BannerErrorCode.INVALID_CHANNEL, "channel");
+        }
+        try {
+            return BannerChannel.valueOf(channel.strip().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new BannerException(BannerErrorCode.INVALID_CHANNEL, "channel");
+        }
+    }
+
+    /** 등록/수정 요청 서버측 검증 → 원장 객체 생성 */
+    private static BannerPopup validate(BannerPopupRequest req, long id, LocalDateTime registeredAt, String registeredBy,
+                                        LocalDateTime updatedAt, String updatedBy) {
+        if (req == null) {
+            throw new BannerException(BannerErrorCode.INVALID_REQUEST);
+        }
+        BannerPopupType type = parseEnum(BannerPopupType.class, req.popupType() == null ? "BANNER_POPUP" : req.popupType(), "배너팝업구분");
+        if (req.category() == null || req.category().isBlank()) {
+            throw new BannerException(BannerErrorCode.REQUIRED_MISSING, "공지유형");
+        }
+        BannerCategory category = parseEnum(BannerCategory.class, req.category(), "공지유형");
+
+        if (req.channels() == null || req.channels().isEmpty()) {
+            throw new BannerException(BannerErrorCode.REQUIRED_MISSING, "노출채널");
+        }
+        Set<BannerChannel> channels = new LinkedHashSet<>();
+        for (String c : req.channels()) {
+            channels.add(parseChannel(c));
+        }
+
+        String title = required(req.title(), "제목", MAX_TITLE);
+        String content = required(req.content(), "내용", MAX_CONTENT);
+
+        String imageUrl = BannerSupport.trimToNull(req.imageUrl());
+        String altText = BannerSupport.trimToNull(req.altText());
+        if (imageUrl != null) {
+            if (!BannerSupport.isSafeUrl(imageUrl)) throw new BannerException(BannerErrorCode.INVALID_URL, "이미지 URL");
+            if (altText == null) throw new BannerException(BannerErrorCode.ALT_TEXT_REQUIRED, "대체텍스트");
+        }
+        if (altText != null && altText.length() > MAX_ALT) {
+            throw new BannerException(BannerErrorCode.TOO_LONG, "대체텍스트(" + MAX_ALT + "자)");
+        }
+        String linkUrl = BannerSupport.trimToNull(req.linkUrl());
+        if (linkUrl != null && !BannerSupport.isSafeUrl(linkUrl)) {
+            throw new BannerException(BannerErrorCode.INVALID_URL, "링크 URL");
+        }
+
+        LocalDateTime start = BannerSupport.parse(req.startAt(), "게시 시작일시");
+        LocalDateTime end = BannerSupport.parse(req.endAt(), "게시 종료일시");
+        if (!end.isAfter(start)) {
+            throw new BannerException(BannerErrorCode.INVALID_PERIOD, "게시기간");
+        }
+        if (req.displayOrder() == null) {
+            throw new BannerException(BannerErrorCode.REQUIRED_MISSING, "표시순서");
+        }
+        int order = req.displayOrder();
+        if (order < MIN_ORDER || order > MAX_ORDER) {
+            throw new BannerException(BannerErrorCode.INVALID_ORDER, "표시순서");
+        }
+        boolean use = req.use() == null || req.use();
+
+        return new BannerPopup(id, type, category, List.copyOf(channels), title, content, imageUrl, altText, linkUrl,
+                start, end, order, use, registeredAt, registeredBy, updatedAt, updatedBy);
+    }
+
+    private static String required(String value, String field, int max) {
+        String v = BannerSupport.trimToNull(value);
+        if (v == null) throw new BannerException(BannerErrorCode.REQUIRED_MISSING, field);
+        if (v.length() > max) throw new BannerException(BannerErrorCode.TOO_LONG, field + "(" + max + "자)");
+        return v;
+    }
+
+    private static <E extends Enum<E>> E parseEnum(Class<E> type, String value, String field) {
+        try {
+            return Enum.valueOf(type, value.strip().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new BannerException(BannerErrorCode.INVALID_CODE, field);
+        }
+    }
+
+    /** yaml seed → 메모리 저장소. 상대 일수(start/end-day-offset)는 기동일 00:00 기준 */
+    private void loadSeed() {
+        LocalDateTime today = LocalDate.now(clock).atStartOfDay();
+        LocalDateTime now = LocalDateTime.now(clock);
+        for (BannerPopupProperties.Seed s : properties.getSeed()) {
+            String start = s.getStartAt() != null ? s.getStartAt()
+                    : BannerSupport.format(today.plusDays(s.getStartDayOffset() == null ? 0 : s.getStartDayOffset()));
+            String end = s.getEndAt() != null ? s.getEndAt()
+                    : BannerSupport.format(today.plusDays(s.getEndDayOffset() == null ? 7 : s.getEndDayOffset()));
+            BannerPopupRequest req = new BannerPopupRequest(s.getPopupType(), s.getCategory(), s.getChannels(),
+                    s.getTitle(), s.getContent(), s.getImageUrl(), s.getAltText(), s.getLinkUrl(),
+                    start, end, s.getDisplayOrder(), s.isUse());
+            try {
+                repository.save(validate(req, repository.nextId(), now, "SYSTEM", now, "SYSTEM"));
+            } catch (BannerException e) {
+                log.warn("[배너팝업] seed 적재 제외 title={} 사유={}", s.getTitle(), e.getMessage());
+            }
+        }
+    }
+}
