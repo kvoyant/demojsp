@@ -368,6 +368,24 @@ common:
       - { category: SERVICE, category-name: 금융서비스, name: 서류제출, url: /document/submit, display-order: 2 }
 
 # =============================================================================
+# [공통#47·48] 홈 추천 상품 + ADMIN 수신/여신상품목록 홈 표시설정 (com.example.demojsp.common.product)
+#  - 금융회원 외 모든 회원에게 홈 표시여부 Y 상품을 홈 표시순서대로 노출, 금융회원은 영역 전체 숨김
+#  - 홈 표시 최대 3개 (수신+여신 합산, 공통#48) → 공통#47 상품목록 4종 중 3종만 Y (확인 필요사항)
+#  - seed = ADMIN 상품원장 흉내. 샘플: /common/product/recommend
+# =============================================================================
+  product:
+    admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+    mall-url: /product/all        # [더보기] = 전체상품목록(상품몰)
+    max-home-count: 3
+    seed:
+      - { code: PS_SMART,        kind: LOAN,    sub-type: 신용대출,   name: 페퍼스마트대출,        summary: "모바일로 한도조회부터 대출까지",   rate-text: "최저 연 6.9%",  icon: loan,      detail-url: /product/loan/PS_SMART,        home-display: true, home-order: 1 }
+      - { code: PS_BIZ_MORTGAGE, kind: LOAN,    sub-type: 담보대출,   name: 페퍼스 사업자담보대출, summary: "사업자 부동산 담보로 든든하게",    rate-text: "최저 연 5.8%",  icon: mortgage,  detail-url: /product/loan/PS_BIZ_MORTGAGE, home-display: false }
+      - { code: PS_2030,         kind: DEPOSIT, sub-type: 적금,       name: 페퍼스 2030적금,       summary: "2030 세대를 위한 우대금리 적금",  rate-text: "최고 연 4.5%",  icon: savings,   detail-url: /product/deposit/PS_2030,      home-display: true, home-order: 2 }
+      - { code: PS_PARKING4,     kind: DEPOSIT, sub-type: 입출금,     name: 페퍼스 파킹통장4,      summary: "하루만 맡겨도 이자가 쌓이는 통장", rate-text: "연 3.2%",       icon: account,   detail-url: /product/deposit/PS_PARKING4,  home-display: true, home-order: 3 }
+      - { code: PS_TIME_DEPOSIT, kind: DEPOSIT, sub-type: 정기예금,   name: 페퍼스 정기예금,       summary: "목돈을 안정적으로",               rate-text: "연 3.6%",       icon: deposit,   detail-url: /product/deposit/PS_TIME,      home-display: false }
+      - { code: PS_AUTO,         kind: LOAN,    sub-type: 오토대출,   name: 페퍼스 오토론,         summary: "판매중지 상품 (홈 노출 제외 예시)", rate-text: "-",             icon: auto-loan, detail-url: /product/loan/PS_AUTO,         on-sale: false, home-display: false }
+
+# =============================================================================
 # 공통모듈 테스트 허브 - http://localhost:8080/common/test-hub
 #  요구사항이 추가되면 아래 items 에 블록만 추가하면 목록에 나타난다.
 # =============================================================================
@@ -542,3 +560,20 @@ common:
           - { label: "퀵메뉴 API", url: "/api/common/menus/quick", type: API }
           - { label: "전체메뉴 API", url: "/api/common/menus/all", type: API }
           - { label: "뱅킹메뉴목록(ADMIN)", url: "/api/common/menu-admin/banking-menus?category=PRODUCT", type: API }
+      - cf-id: CF-BC-20
+        req-id: 공통#47
+        title: 홈 - 추천 상품 (금융회원 외 · ADMIN 노출순서 · 상품안내 이동)
+        category: 공통 요구사항 > 홈 - 추천 상품
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP]
+        features:
+          - "제공대상 금융회원 외 모든 회원(비로그인·일반회원), 금융회원은 추천 상품 영역 전체 숨김"
+          - "상품목록: 여신·수신·입출금 상품을 ADMIN 홈 표시여부 Y · 홈 표시순서대로 (최대 3개)"
+          - "[더보기] → 전체상품목록(상품몰), 상품 터치 → 상품안내페이지"
+          - "카드 내용(상품명·설명·금리)은 상품 원장 연동 - 상품설정 수정이 바로 반영"
+        guide: docs/COMMON_RECOMMEND_PRODUCT_GUIDE.md
+        links:
+          - { label: "샘플 화면", url: "/common/product/recommend", type: PAGE }
+          - { label: "추천 상품 API", url: "/api/common/products/recommend", type: API }
+          - { label: "금융회원(숨김)", url: "/api/common/products/recommend?demoCustomer=customer01", type: API }
