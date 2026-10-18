@@ -1,0 +1,57 @@
+/*
+ * =============================================================================
+ *  [공통#50] APP 하단 탭바 + 이어하기 툴팁  -  /css/common/bottom-nav.css   (ui-tokens.css, ui-icon.css 먼저 로드)
+ *  배지: 탭 아이콘 오른쪽 위 빨간 원 + 흰 숫자 (대비 5.6:1), 2자리 이상은 가로로 늘어남, 99+
+ * =============================================================================
+ */
+.ui-tabbar {
+    display: flex;
+    margin: 0;
+    padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px));
+    list-style: none;
+    background: var(--ui-surface);
+    border-top: 1px solid var(--ui-surface-press);
+    font-family: var(--ui-font);
+}
+.ui-tabbar__cell { flex: 1 1 0; }
+.ui-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 52px;
+    padding: 6px 0 2px;
+    color: var(--ui-text-sub);
+    text-decoration: none;
+    font-size: var(--ui-fs-xs);
+    -webkit-tap-highlight-color: transparent;
+}
+.ui-tab:hover { color: var(--ui-text); }
+.ui-tab[aria-current="page"] { color: var(--ui-primary); font-weight: 700; }
+.ui-tab:focus { outline: none; }
+.ui-tab:focus-visible { box-shadow: inset var(--ui-focus-ring); border-radius: var(--ui-radius-sm); }
+.ui-tab__iconwrap { position: relative; display: inline-flex; }
+.ui-tab__icon { width: 26px; height: 26px; }
+.ui-tab__badge {
+    position: absolute;
+    top: -5px;
+    left: 16px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--ui-error);
+    color: #fff;
+    border: 2px solid var(--ui-surface);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 14px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .ui-tab__badge:not([hidden]) { animation: ui-tab-badge-in 220ms var(--ui-ease); }
+}
+@keyframes ui-tab-badge-in { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+.ui-tab__sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

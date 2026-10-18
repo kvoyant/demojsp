@@ -612,3 +612,19 @@ common:
           - { label: "저축 탭 샘플", url: "/common/savings/sample", type: PAGE }
           - { label: "저축 이어하기 API", url: "/api/common/resume?scope=DEPOSIT", type: API }
           - { label: "신청현황조회(수신)", url: "/common/resume/status?scope=DEPOSIT", type: PAGE }
+      - cf-id: CF-NA-07
+        req-id: 공통#50
+        title: 저축 - 이어하기 툴팁 (하단 저축 탭 진행 건수)
+        category: 공통 요구사항 > 저축 - 이어하기 툴팁
+        status: 개발완료
+        requested-at: "2026-09-18"
+        channels: [APP]
+        features:
+          - "하단 '저축' 탭 아이콘에 숫자(진행 중 수신 이어하기 건수) 배지, 99+"
+          - "현재 위치가 홈·저축·대출 어느 탭이든 상시 표시 (공통 하단 탭바 BottomNav)"
+          - "진행 건 없음·취소로 잔여 0건이면 미노출 - 이어하기 변경 이벤트·화면 복귀·앱 복귀 시 자동 갱신"
+          - "건수 전용 API(비로그인 0건, 오류 없음), 스크린리더 \"진행 중인 저축 가입 N건\", 네이티브 탭바 브릿지(onBadge)"
+        guide: docs/COMMON_RESUME_GUIDE.md
+        links:
+          - { label: "저축 탭 샘플", url: "/common/savings/sample", type: PAGE }
+          - { label: "건수 API", url: "/api/common/resume/counts", type: API }

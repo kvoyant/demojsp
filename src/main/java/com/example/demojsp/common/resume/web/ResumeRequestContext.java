@@ -45,6 +45,15 @@ public class ResumeRequestContext {
         throw new ResumeException(ResumeErrorCode.LOGIN_REQUIRED);
     }
 
+    /** 고객 ID, 식별 불가(비로그인)면 null - 툴팁처럼 비로그인에도 오류 없이 0건으로 보여야 하는 곳에서 사용 */
+    public String customerIdOrNull(HttpServletRequest request) {
+        try {
+            return customerId(request);
+        } catch (ResumeException e) {
+            return null;
+        }
+    }
+
     /** 테스트 API 허용 여부 (local 전용) */
     public void requireDemo() {
         if (!properties.isDemoApiOpen()) {

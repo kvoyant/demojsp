@@ -21,6 +21,7 @@ import java.util.Map;
  * <pre>
  *  GET  /api/common/resume?scope=ALL            이어하기 카드: 건수 + 최신 1건 + 범위별 건수 + 더보기 URL
  *  GET  /api/common/resume/list?scope=ALL       신청현황조회: 진행 중 전체 (최신순)
+ *  GET  /api/common/resume/counts               범위별 진행 중 건수 {ALL, DEPOSIT, LOAN} - 하단 탭 툴팁(공통#50), 비로그인 0
  *  POST /api/common/resume/{id}/continue        [이어하기] 클릭 → 본인·진행중·만료 전 재확인 후 이동 URL
  * </pre>
  * 고객은 로그인 세션으로만 식별한다 ({@link ResumeRequestContext}).
@@ -47,6 +48,11 @@ public class ResumeApiController {
     public ApiResponse<List<ResumeCardView>> list(@RequestParam(value = "scope", defaultValue = "ALL") String scope,
                                                   HttpServletRequest request) {
         return ApiResponse.success(resumeService.list(context.customerId(request), scope));
+    }
+
+    @GetMapping("/counts")
+    public ApiResponse<Map<String, Integer>> counts(HttpServletRequest request) {
+        return ApiResponse.success(resumeService.counts(context.customerIdOrNull(request)));
     }
 
     @PostMapping("/{id}/continue")

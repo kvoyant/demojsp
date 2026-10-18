@@ -217,11 +217,19 @@
             }
             // 다른 기기에서 완료/취소했거나 기간이 지난 경우 → 안내 후 최신 상태로 다시 그림
             if (typeof opts.onNotResumable === 'function') opts.onNotResumable(res);
-            notify((res && res.message) || '이어하기를 진행할 수 없습니다.').then(function () { load(host, opts); });
+            notify((res && res.message) || '이어하기를 진행할 수 없습니다.').then(function () {
+                load(host, opts);
+                changed();                      // 하단 탭 툴팁(공통#50) 등 다른 건수 표시도 갱신
+            });
         }).catch(function (err) {
             if (typeof opts.onError === 'function') opts.onError(err);
             notify('일시적으로 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.');
         });
+    }
+
+    /** 이어하기 건수가 바뀌었음을 알림 → bottom-nav.js 의 탭 툴팁이 다시 조회 (업무 화면도 취소·완료 후 호출) */
+    function changed() {
+        try { global.dispatchEvent(new CustomEvent('resume:changed')); } catch (e) { /* 구형 브라우저 무시 */ }
     }
 
     // ------------------------------------------------------------------ load
@@ -269,7 +277,7 @@
         return load(host, opts || {});
     }
 
-    global.ResumeCard = { mount: mount, refresh: refresh, render: function (t, s, o) { render(toEl(t), s, o || {}); } };
+    global.ResumeCard = { mount: mount, refresh: refresh, changed: changed, render: function (t, s, o) { render(toEl(t), s, o || {}); } };
 
     // 뒤로가기(bfcache)로 홈에 돌아오면 다른 화면에서 진행한 내용 반영
     global.addEventListener('pageshow', function (e) {

@@ -37,6 +37,26 @@
 
 저축 탭 적용: `ResumeCard.mount('#resumeCard', { scope: 'DEPOSIT' })` - 카드 제목 기본값 "진행 중인 저축 가입".
 
+## 1-3. 공통#50 저축 - 이어하기 툴팁 (하단 '저축' 탭 숫자)
+
+| 요구사항 (공통#50) | 구현 |
+|---|---|
+| 방향: 수신계좌 개설 이어하기 보유 시 탭에 강조 / 목적: 진행 건 강조 | 공통 하단 탭바 `BottomNav` + 저축 탭 숫자 배지 |
+| 정책1 제공대상: 수신계좌 이어하기 대상자 모두 | `GET /api/common/resume/counts` 의 `DEPOSIT` 건수 > 0 |
+| 정책2 존재 시 상시 활성 - 홈·저축·대출 탭 어디서든 | 세 탭 화면 모두 같은 `BottomNav.mount('#bottomNav', { active: '현재탭' })` → 배지는 항상 '저축' 탭에 |
+| 기능1 '저축' 탭에 아이콘 형태로 숫자 | 아이콘 오른쪽 위 빨간 원 숫자 (99+), 스크린리더는 탭 이름에 "진행 중인 저축 가입 N건" |
+| 기능2 미노출: 진행 건 없음 / 진행 중 취소로 잔여 0건 | 0 이면 배지 숨김. 취소·완료 후 `ResumeCard.changed()`(또는 `ResumeTabBadge.refresh()`) → 즉시 재조회. 뒤로가기·앱 복귀 시에도 재조회 |
+
+```html
+<link rel="stylesheet" href="/css/common/bottom-nav.css">
+<script src="/js/common/bottom-nav.js"></script>
+<nav id="bottomNav"></nav>
+<script>BottomNav.mount('#bottomNav', { active: 'SAVINGS' });</script>
+```
+- 건수 API 는 비로그인이면 오류 없이 0건 (탭바는 그대로, 배지만 숨김).
+- APP 네이티브 탭바를 쓰면 `onBadge: function (tab, n) { NativeBridge.setTabBadge(tab, n); }` 로 같은 건수를 넘긴다 (CF-NA-07).
+- 대출 탭 툴팁이 필요해지면 `badges: { SAVINGS: 'DEPOSIT', LOAN: 'LOAN' }`.
+
 ## 2. 업무 화면 적용 (APP 홈)
 
 ```html
@@ -115,3 +135,5 @@ local 은 `application.yaml` `common.resume.partners`. 로고는 수집·제작 
 이어하기 재확인(타 고객·취소 후), 단계 저장 갱신/등록, 링크·코드 검증, 운영 설정 차단, 카드 JS 계약.
 
 `SavingsResumeTest` (5건, 공통#49): 수신 최신 1건·건수(여신 제외), 더보기·당행 로고, 이어하기·취소 후 다음 건, 수신 당행 전용, 저축 탭 제목.
+
+`SavingsTabTooltipTest` (4건, 공통#50): 수신 건수(만료·여신 제외), 미대상·취소로 0건, 비로그인 0건 오류 없음, 탭바 JS 계약.

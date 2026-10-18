@@ -111,6 +111,19 @@ public class ResumeService {
         return new ResumeSummary(scope.name(), inScope.size(), counts, latest, properties.getStatusUrl(), at.format(FULL));
     }
 
+    /**
+     * 범위별 진행 중 건수만 (공통#50 하단 탭 툴팁 - 홈/저축/대출 어느 탭에서든 가볍게 반복 조회).
+     * 고객을 알 수 없으면(비로그인) 모두 0 → 툴팁 미노출.
+     */
+    public Map<String, Integer> counts(String customerId) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        List<ResumePoint> active = customerId == null || customerId.isBlank() ? List.of() : active(customerId, LocalDateTime.now(clock));
+        for (ResumeScope s : ResumeScope.values()) {
+            counts.put(s.name(), (int) active.stream().filter(p -> s.includes(p.productType())).count());
+        }
+        return counts;
+    }
+
     /** 신청현황조회 - 범위 안 진행 중 전체 (최신순) */
     public List<ResumeCardView> list(String customerId, String scope) {
         LocalDateTime now = LocalDateTime.now(clock);
