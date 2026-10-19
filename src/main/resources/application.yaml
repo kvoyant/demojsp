@@ -410,6 +410,16 @@ common:
       - { code: PS_AUTO,         kind: LOAN,    sub-type: 오토대출,   name: 페퍼스 오토론,         summary: "판매중지 상품 (홈 노출 제외 예시)", rate-text: "-",             icon: auto-loan, detail-url: /product/loan/PS_AUTO,         on-sale: false, home-display: false }
 
 # =============================================================================
+# [CF-BC-20 / 공통#26] 메인화면 상품 탭 (com.example.demojsp.common.producttab) - REQ-AP-606·607
+#  - 상단 슬라이드 카드 · 섹션 · 섹션별 상품은 전부 DB (schema-common-producttab.sql 테이블 3개)
+#  - 상품 정보(이름·금리·URL·판매여부)는 위 common.product 상품 원장(TB_PRODUCT) 값을 그대로 사용
+#  - 사용자 화면: /common/product-tab/sample   어드민: /common/product-tab/admin
+# =============================================================================
+  product-tab:
+    max-slides: 5             # 상단 슬라이드 카드 최대 노출 수 (0 = 제한 없음)
+    admin-api-open: true      # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+
+# =============================================================================
 # [공통#51] 저축 탭 메인 콘텐츠 (com.example.demojsp.common.savings) - 계좌 미보유 대상
 #  [계좌 개설하기] → 상품 원장(common.product)의 입출금통장 상품안내페이지 (ADMIN 변경 자동 반영)
 # =============================================================================
@@ -699,3 +709,20 @@ common:
           - { label: "저축 탭 샘플", url: "/common/savings/sample", type: PAGE }
           - { label: "저축 메인 API", url: "/api/common/savings/main", type: API }
           - { label: "계좌 보유(미노출)", url: "/api/common/savings/main?demoCustomer=customer01", type: API }
+      - cf-id: CF-BC-20
+        req-id: 공통#26 (REQ-AP-606·607)
+        title: 메인화면 상품 탭 (상단 슬라이드 카드 · ADMIN 상품 목록 관리)
+        category: 공통 요구사항 > 상품 > 메인화면 상품 탭
+        status: 개발완료
+        requested-at: "2026-09-15"
+        channels: [APP, PC WEB, ADMIN]
+        features:
+          - "상단 슬라이드 카드 영역 신규 (게시기간 · 채널 · 표시순서, 판매중지 상품 카드 자동 숨김)"
+          - "불필요 카드(시세조회) 삭제 = ADMIN 섹션 사용여부 N - 화면 코드 수정 없음"
+          - "섹션(예금·적금 / 대출 / 서비스 카드) 순서·사용 + 섹션별 상품 순서·배지·사용을 ADMIN 에서 관리"
+          - "상품 정보는 상품 원장(공통#48) 연동, APP 1열 / PC Web 2열 공통 컴포넌트"
+        guide: docs/COMMON_PRODUCT_TAB_GUIDE.md
+        links:
+          - { label: "사용자 화면 (APP/PC)", url: "/common/product-tab/sample", type: PAGE }
+          - { label: "어드민 상품 탭 관리", url: "/common/product-tab/admin", type: PAGE }
+          - { label: "상품 탭 API", url: "/api/common/product-tab?channel=APP", type: API }

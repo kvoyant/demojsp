@@ -1,0 +1,83 @@
+/*
+ * =============================================================================
+ *  [CF-BC-20 / 공통#26] 메인화면 상품 탭  -  /css/common/product-tab.css
+ *  색상은 ui-tokens.css 변수 사용 (없으면 기본값). 접두어 pt- 로 기존 화면 CSS 와 충돌 방지.
+ *  APP(좁은 영역): 카드 1장씩, 상품 1열 / PC Web(영역 폭 600px 이상): 카드 2장씩, 상품 2열
+ *  화면 전체 폭이 아니라 '상품 탭이 놓인 영역 폭' 기준(container query) → 같은 페이지 안 폰 미리보기도 APP 모양 유지
+ * =============================================================================
+ */
+.pt-root { container-type: inline-size; font-family: var(--ui-font, 'Noto Sans KR', 'Malgun Gothic', sans-serif); color: var(--ui-text, #111827); }
+.pt-root a { text-decoration: none; color: inherit; }
+.pt-root a:focus-visible, .pt-arrow:focus-visible { outline: none; box-shadow: var(--ui-focus-ring, 0 0 0 3px #1d70e8); }
+
+/* ---------------------------------------------------------------- ① 상단 슬라이드 카드 */
+.pt-slides { margin-bottom: 24px; }
+.pt-track {
+    display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 2px;
+}
+.pt-track::-webkit-scrollbar { display: none; }
+.pt-card {
+    position: relative; flex: 0 0 calc(100% - 24px); scroll-snap-align: start; min-height: 132px; box-sizing: border-box;
+    border-radius: 18px; padding: 20px 20px 18px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden;
+}
+.pt-card-badge {
+    position: absolute; top: 16px; left: 20px; font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+    background: rgba(255, 255, 255, .85); color: #111827;
+}
+.pt-card-title { font-size: 1.25rem; font-weight: 800; line-height: 1.35; word-break: keep-all; }
+.pt-card-sub { margin-top: 4px; font-size: .875rem; opacity: .92; word-break: keep-all; }
+.pt-card-img { position: absolute; right: 12px; bottom: 12px; width: 72px; height: 72px; object-fit: contain; }
+.pt-card:has(.pt-card-img) .pt-card-title, .pt-card:has(.pt-card-img) .pt-card-sub { padding-right: 80px; }
+.pt-nav { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+.pt-count { font-size: .75rem; color: var(--ui-text-sub, #4b5563); min-width: 40px; text-align: center; }
+.pt-arrow {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--ui-line, #d1d5db); background: #fff;
+    font-size: 1.1rem; line-height: 1; cursor: pointer; color: var(--ui-text, #111827); display: none;
+}
+.pt-arrow:disabled { opacity: .35; cursor: default; }
+
+/* ---------------------------------------------------------------- ② 상품 섹션 */
+.pt-section { margin-bottom: 24px; }
+.pt-section-title { font-size: 1.125rem; font-weight: 800; margin: 0 0 2px; color: var(--ui-text, #111827); }
+.pt-section-desc { font-size: .8125rem; color: var(--ui-text-sub, #4b5563); margin: 0 0 10px; }
+.pt-items { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }   /* minmax(0,…): 긴 설명이 칸을 밀어내지 않게 */
+.pt-item {
+    display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px;
+    background: var(--ui-surface, #fff); border: 1px solid var(--ui-surface-press, #e5e7eb);
+}
+.pt-item:active { background: var(--ui-surface-sub, #f3f4f6); }
+.pt-item-icon {
+    flex: none; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: var(--ui-primary-soft, #e3ecfa); color: var(--ui-primary, #0d47a1);
+}
+.pt-item-icon.loan { background: #fff4e0; color: #b45309; }
+.pt-item-icon .ui-icon { width: 26px; height: 26px; }
+.pt-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pt-item-top { display: flex; gap: 6px; align-items: center; }
+.pt-item-type { font-size: .75rem; color: var(--ui-text-sub, #4b5563); }
+.pt-item-badge { font-size: .6875rem; font-weight: 700; color: #c62828; background: #fdecea; border-radius: 4px; padding: 0 5px; }
+.pt-item-name { font-size: 1rem; font-weight: 700; margin-top: 1px; }
+.pt-item-summary { font-size: .8125rem; color: var(--ui-text-sub, #4b5563); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-item-rate { flex: none; font-size: .875rem; font-weight: 800; color: var(--ui-primary, #0d47a1); text-align: right; }
+
+/* ---------------------------------------------------------------- ② 서비스 카드 섹션 */
+.pt-services { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-bottom: 24px; }
+.pt-service {
+    display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: var(--ui-surface-sub, #f3f4f6);
+}
+.pt-service-icon { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; color: var(--ui-primary, #0d47a1); }
+.pt-service-icon .ui-icon { width: 22px; height: 22px; }
+.pt-service-body { flex: 1; display: flex; flex-direction: column; }
+.pt-service-title { font-size: .9375rem; font-weight: 700; }
+.pt-service-desc { font-size: .8125rem; color: var(--ui-text-sub, #4b5563); }
+.pt-service-arrow { font-size: 1.375rem; color: var(--ui-line-strong, #9ca3af); }
+
+.pt-empty { text-align: center; color: var(--ui-text-sub, #4b5563); padding: 40px 0; }
+
+/* ---------------------------------------------------------------- PC Web (넓은 영역) */
+@container (min-width: 600px) {
+    .pt-card { flex-basis: calc(50% - 6px); min-height: 150px; }
+    .pt-arrow { display: inline-block; }
+    .pt-items, .pt-services { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

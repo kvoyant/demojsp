@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  [CF-BC-20 / 공통#26] 메인화면 상품 탭  -  테이블: schema-common-producttab.sql
+  상품 정보(이름·설명·금리·아이콘·URL·판매여부)는 항상 TB_PRODUCT 를 조인해서 읽는다 (복사 저장하지 않음).
+-->
+<mapper namespace="com.example.demojsp.common.producttab.mapper.ProductTabMapper">
+
+    <!-- 슬라이드 컬럼 + 연결 상품 정보 (s = TB_PRD_TAB_SLIDE, p = TB_PRODUCT) -->
+    <sql id="slideCols">
+        s.SLIDE_ID, s.TITLE, s.SUB_TEXT, s.BADGE_TEXT, s.BG_COLOR, s.IMAGE_URL, s.IMAGE_ALT, s.PRODUCT_CD, s.LINK_URL,
+        s.CHANNELS, s.START_DT, s.END_DT, s.SORT_ORD, s.USE_YN, s.UPD_AT, s.UPD_BY,
+        p.PRODUCT_NM, p.ON_SALE_YN AS PRODUCT_ON_SALE_YN, p.DETAIL_URL AS PRODUCT_URL
+    </sql>
+
+    <!-- 상품 항목 컬럼 (i = TB_PRD_TAB_ITEM, p = TB_PRODUCT) -->
+    <sql id="itemCols">
+        i.SECTION_CD, i.PRODUCT_CD, i.SORT_ORD, i.BADGE_TEXT, i.USE_YN,
+        p.PRODUCT_NM, p.PRODUCT_KIND, p.SUB_TYPE, p.SUMMARY, p.RATE_TEXT, p.ICON, p.DETAIL_URL, p.ON_SALE_YN
+    </sql>
+
+    <!-- ================================================================ 사용자 화면 -->
+
+    <select id="selectActiveSlides" resultType="com.example.demojsp.common.producttab.dto.PtSlideDto">
+        SELECT <include refid="slideCols"/>
+          FROM TB_PRD_TAB_SLIDE s
+          LEFT JOIN TB_PRODUCT p ON p.PRODUCT_CD = s.PRODUCT_CD
+         WHERE s.USE_YN = 'Y'
+           AND s.START_DT &lt;= #{baseDt}
+           AND s.END_DT   &gt;= #{baseDt}
+           AND (s.PRODUCT_CD IS NULL OR p.ON_SALE_YN = 'Y')      <!-- 판매중지·삭제된 상품의 카드는 자동 숨김 -->
+         ORDER BY s.SORT_ORD, s.SLIDE_ID
+    </select>
+
+    <select id="selectActiveSections" resultType="com.example.demojsp.common.producttab.dto.PtSectionDto">
+        SELECT SECTION_CD, SECTION_NM, SECTION_DESC, SECTION_TYPE, CARD_ICON, LINK_URL, SORT_ORD, USE_YN
+          FROM TB_PRD_TAB_SECTION
+         WHERE USE_YN = 'Y'
+         ORDER BY SORT_ORD, SECTION_CD
+    </select>
+
+    <select id="selectActiveItems" resultType="com.example.demojsp.common.producttab.dto.PtItemDto">
+        SELECT <include refid="itemCols"/>
+          FROM TB_PRD_TAB_ITEM i
+          JOIN TB_PRD_TAB_SECTION sec ON sec.SECTION_CD = i.SECTION_CD AND sec.USE_YN = 'Y'
+          JOIN TB_PRODUCT p ON p.PRODUCT_CD = i.PRODUCT_CD
+         WHERE i.USE_YN = 'Y'
+           AND p.ON_SALE_YN = 'Y'                                  <!-- 판매중지 상품은 목록에서 자동 제외 -->
+         ORDER BY i.SECTION_CD, i.SORT_ORD, i.PRODUCT_CD
+    </select>
+
+    <!-- ================================================================ ADMIN - 슬라이드 -->
+
+    <select id="selectSlides" resultType="com.example.demojsp.common.producttab.dto.PtSlideDto">
+        SELECT <include refid="slideCols"/>
+          FROM TB_PRD_TAB_SLIDE s
+          LEFT JOIN TB_PRODUCT p ON p.PRODUCT_CD = s.PRODUCT_CD
+         ORDER BY s.USE_YN DESC, s.START_DT DESC, s.SORT_ORD, s.SLIDE_ID
+    </select>
+
+    <select id="selectSlide" resultType="com.example.demojsp.common.producttab.dto.PtSlideDto">
+        SELECT <include refid="slideCols"/>
+          FROM TB_PRD_TAB_SLIDE s
+          LEFT JOIN TB_PRODUCT p ON p.PRODUCT_CD = s.PRODUCT_CD
+         WHERE s.SLIDE_ID = #{slideId}
+    </select>
+
+    <insert id="insertSlide" useGeneratedKeys="true" keyProperty="slideId" keyColumn="SLIDE_ID">
+        INSERT INTO TB_PRD_TAB_SLIDE (TITLE, SUB_TEXT, BADGE_TEXT, BG_COLOR, IMAGE_URL, IMAGE_ALT, PRODUCT_CD, LINK_URL,
+                                      CHANNELS, START_DT, END_DT, SORT_ORD, USE_YN, UPD_AT, UPD_BY)
+        VALUES (#{title}, #{subText}, #{badgeText}, #{bgColor}, #{imageUrl}, #{imageAlt}, #{productCd}, #{linkUrl},
+                #{channels}, #{startDt}, #{endDt}, #{sortOrd}, #{useYn}, #{updAt}, #{updBy})
+    </insert>
+
+    <update id="updateSlide">
+        UPDATE TB_PRD_TAB_SLIDE
+           SET TITLE = #{title}, SUB_TEXT = #{subText}, BADGE_TEXT = #{badgeText}, BG_COLOR = #{bgColor},
+               IMAGE_URL = #{imageUrl}, IMAGE_ALT = #{imageAlt}, PRODUCT_CD = #{productCd}, LINK_URL = #{linkUrl},
+               CHANNELS = #{channels}, START_DT = #{startDt}, END_DT = #{endDt}, SORT_ORD = #{sortOrd}, USE_YN = #{useYn},
+               UPD_AT = #{updAt}, UPD_BY = #{updBy}
+         WHERE SLIDE_ID = #{slideId}
+    </update>
+
+    <!-- ================================================================ ADMIN - 섹션 · 상품 -->
+
+    <select id="selectSections" resultType="com.example.demojsp.common.producttab.dto.PtSectionDto">
+        SELECT s.SECTION_CD, s.SECTION_NM, s.SECTION_DESC, s.SECTION_TYPE, s.CARD_ICON, s.LINK_URL, s.SORT_ORD, s.USE_YN,
+               s.UPD_AT, s.UPD_BY,
+               (SELECT COUNT(*) FROM TB_PRD_TAB_ITEM i WHERE i.SECTION_CD = s.SECTION_CD AND i.USE_YN = 'Y') AS ITEM_CNT
+          FROM TB_PRD_TAB_SECTION s
+         ORDER BY s.SORT_ORD, s.SECTION_CD
+    </select>
+
+    <select id="selectSection" resultType="com.example.demojsp.common.producttab.dto.PtSectionDto">
+        SELECT SECTION_CD, SECTION_NM, SECTION_DESC, SECTION_TYPE, CARD_ICON, LINK_URL, SORT_ORD, USE_YN, UPD_AT, UPD_BY
+          FROM TB_PRD_TAB_SECTION
+         WHERE SECTION_CD = #{sectionCd}
+    </select>
+
+    <!-- 섹션 등록/수정 (있으면 수정) -->
+    <insert id="mergeSection">
+        INSERT INTO TB_PRD_TAB_SECTION (SECTION_CD, SECTION_NM, SECTION_DESC, SECTION_TYPE, CARD_ICON, LINK_URL, SORT_ORD, USE_YN, UPD_AT, UPD_BY)
+        VALUES (#{sectionCd}, #{sectionNm}, #{sectionDesc}, #{sectionType}, #{cardIcon}, #{linkUrl}, #{sortOrd}, #{useYn}, #{updAt}, #{updBy})
+        ON DUPLICATE KEY UPDATE
+            SECTION_NM = VALUES(SECTION_NM), SECTION_DESC = VALUES(SECTION_DESC), SECTION_TYPE = VALUES(SECTION_TYPE),
+            CARD_ICON = VALUES(CARD_ICON), LINK_URL = VALUES(LINK_URL), SORT_ORD = VALUES(SORT_ORD), USE_YN = VALUES(USE_YN),
+            UPD_AT = VALUES(UPD_AT), UPD_BY = VALUES(UPD_BY)
+    </insert>
+
+    <select id="selectSectionItems" resultType="com.example.demojsp.common.producttab.dto.PtItemDto">
+        SELECT <include refid="itemCols"/>
+          FROM TB_PRD_TAB_ITEM i
+          LEFT JOIN TB_PRODUCT p ON p.PRODUCT_CD = i.PRODUCT_CD
+         WHERE i.SECTION_CD = #{sectionCd}
+         ORDER BY i.SORT_ORD, i.PRODUCT_CD
+    </select>
+
+    <delete id="deleteSectionItems">
+        DELETE FROM TB_PRD_TAB_ITEM WHERE SECTION_CD = #{sectionCd}
+    </delete>
+
+    <insert id="insertSectionItem">
+        INSERT INTO TB_PRD_TAB_ITEM (SECTION_CD, PRODUCT_CD, SORT_ORD, BADGE_TEXT, USE_YN, UPD_AT, UPD_BY)
+        VALUES (#{sectionCd}, #{productCd}, #{sortOrd}, #{badgeText}, #{useYn}, #{updAt}, #{updBy})
+    </insert>
+
+    <select id="selectProducts" resultType="com.example.demojsp.common.producttab.dto.PtProductDto">
+        SELECT PRODUCT_CD, PRODUCT_NM, PRODUCT_KIND, SUB_TYPE, ON_SALE_YN
+          FROM TB_PRODUCT
+         ORDER BY PRODUCT_KIND, PRODUCT_NM
+    </select>
+</mapper>
