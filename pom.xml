@@ -94,6 +94,12 @@
 			<version>4.0.1</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- 공통모듈 DB 저장소(MyBatis) 테스트: H2 MySQL 호환 모드 (운영/로컬 실행은 MySQL) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

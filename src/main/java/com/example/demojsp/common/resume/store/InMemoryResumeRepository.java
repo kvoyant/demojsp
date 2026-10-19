@@ -1,6 +1,7 @@
 package com.example.demojsp.common.resume.store;
 
 import com.example.demojsp.common.resume.domain.ResumePoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 재기동하면 seed 상태로 돌아간다 (local 테스트 용도).
  */
 @org.springframework.stereotype.Repository
+@ConditionalOnProperty(name = "common.store.type", havingValue = "memory")
 public class InMemoryResumeRepository implements ResumeRepository {
 
     private final Map<Long, ResumePoint> store = new LinkedHashMap<>();

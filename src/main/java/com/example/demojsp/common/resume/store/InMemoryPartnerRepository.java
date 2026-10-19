@@ -2,6 +2,7 @@ package com.example.demojsp.common.resume.store;
 
 import com.example.demojsp.common.resume.config.ResumeProperties;
 import com.example.demojsp.common.resume.domain.Partner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import java.util.Optional;
  * 회사 마스터 메모리 구현 (yaml {@code common.resume.partners}).
  */
 @org.springframework.stereotype.Repository
+@ConditionalOnProperty(name = "common.store.type", havingValue = "memory")
 public class InMemoryPartnerRepository implements PartnerRepository {
 
     private final Map<String, Partner> store = new LinkedHashMap<>();
@@ -35,5 +37,10 @@ public class InMemoryPartnerRepository implements PartnerRepository {
     @Override
     public List<Partner> findAll() {
         return new ArrayList<>(store.values());
+    }
+
+    @Override
+    public void save(Partner partner) {
+        store.put(partner.code(), partner);
     }
 }

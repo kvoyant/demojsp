@@ -31,7 +31,7 @@ import java.util.Locale;
  * 카드 내용(상품명·설명·금리·URL)은 상품 원장 그대로 (공통#48 기능4 연동).
  */
 @Service
-public class ProductService {
+public class ProductService implements com.example.demojsp.common.store.CommonSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 
@@ -65,6 +65,20 @@ public class ProductService {
                 .map(RecommendItem::of)
                 .toList();
         return new RecommendView(true, member.segment().name(), properties.getMallUrl(), items);
+    }
+
+    @Override
+    public String seedName() {
+        return "상품";
+    }
+
+    /** DB 저장소: 상품 테이블이 비어 있으면 yaml seed 적재 (CommonStoreInitializer 가 기동 후 호출) */
+    @Override
+    public void seedIfEmpty() {
+        if (repository.findAll().isEmpty()) {
+            loadSeed();
+            log.info("[상품] seed 적재 완료");
+        }
     }
 
     private void loadSeed() {

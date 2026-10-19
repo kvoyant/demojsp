@@ -49,7 +49,7 @@ import java.util.Set;
  * <p>ADMIN 등록/수정 시 서버측 Validator 로 기간·표시순서·URL·대체텍스트를 강제한다 (CF-BC-20 구현 방안).
  */
 @Service
-public class BannerPopupService {
+public class BannerPopupService implements com.example.demojsp.common.store.CommonSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(BannerPopupService.class);
     /** 감사 로그 (배너 등록·수정·삭제 이력) - 운영에서 별도 파일로 분리 권장 */
@@ -409,7 +409,21 @@ public class BannerPopupService {
         }
     }
 
-    /** yaml seed → 메모리 저장소. 상대 일수(start/end-day-offset)는 기동일 00:00 기준 */
+    @Override
+    public String seedName() {
+        return "배너팝업";
+    }
+
+    /** DB 저장소: 배너팝업 테이블이 비어 있으면 yaml seed 적재 (CommonStoreInitializer 가 기동 후 호출) */
+    @Override
+    public void seedIfEmpty() {
+        if (repository.findAll().isEmpty()) {
+            loadSeed();
+            log.info("[배너팝업] seed 적재 완료");
+        }
+    }
+
+    /** yaml seed → 저장소. 상대 일수(start/end-day-offset)는 기동일 00:00 기준 */
     private void loadSeed() {
         LocalDateTime today = LocalDate.now(clock).atStartOfDay();
         LocalDateTime now = LocalDateTime.now(clock);

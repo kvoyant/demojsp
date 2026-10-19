@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [공통#43·49·50] 이어하기 TB_RESUME_POINT · 회사 마스터 TB_CO_PARTNER -->
+<mapper namespace="com.example.demojsp.common.resume.mapper.ResumeMapper">
+
+    <sql id="cols">
+        RESUME_ID, CUSTOMER_ID, PRODUCT_TYPE, BIZ_CD, BIZ_NM, PRODUCT_CD, PRODUCT_NM, PARTNER_CD,
+        STEP_NM, STEP_NO, TOTAL_STEPS, RESUME_URL, STATUS, STARTED_AT, LAST_ACTIVITY_AT, EXPIRES_AT
+    </sql>
+
+    <select id="selectAll" resultType="com.example.demojsp.common.resume.mapper.ResumePointRow">
+        SELECT <include refid="cols"/> FROM TB_RESUME_POINT ORDER BY RESUME_ID
+    </select>
+
+    <!-- 고객별 조회 (IDX_RESUME_CUST). 진행중/만료 판단·최신 정렬은 서비스 규칙(ResumePoint)으로 처리 -->
+    <select id="selectByCustomer" resultType="com.example.demojsp.common.resume.mapper.ResumePointRow">
+        SELECT <include refid="cols"/> FROM TB_RESUME_POINT WHERE CUSTOMER_ID = #{customerId} ORDER BY RESUME_ID
+    </select>
+
+    <select id="selectById" resultType="com.example.demojsp.common.resume.mapper.ResumePointRow">
+        SELECT <include refid="cols"/> FROM TB_RESUME_POINT WHERE RESUME_ID = #{resumeId}
+    </select>
+
+    <update id="update">
+        UPDATE TB_RESUME_POINT SET
+            CUSTOMER_ID = #{customerId}, PRODUCT_TYPE = #{productType}, BIZ_CD = #{bizCd}, BIZ_NM = #{bizNm},
+            PRODUCT_CD = #{productCd}, PRODUCT_NM = #{productNm}, PARTNER_CD = #{partnerCd}, STEP_NM = #{stepNm},
+            STEP_NO = #{stepNo}, TOTAL_STEPS = #{totalSteps}, RESUME_URL = #{resumeUrl}, STATUS = #{status},
+            STARTED_AT = #{startedAt}, LAST_ACTIVITY_AT = #{lastActivityAt}, EXPIRES_AT = #{expiresAt}
+        WHERE RESUME_ID = #{resumeId}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO TB_RESUME_POINT (<include refid="cols"/>)
+        VALUES (#{resumeId}, #{customerId}, #{productType}, #{bizCd}, #{bizNm}, #{productCd}, #{productNm}, #{partnerCd},
+                #{stepNm}, #{stepNo}, #{totalSteps}, #{resumeUrl}, #{status}, #{startedAt}, #{lastActivityAt}, #{expiresAt})
+    </insert>
+
+    <select id="selectPartners" resultType="com.example.demojsp.common.resume.mapper.PartnerRow">
+        SELECT PARTNER_CD, PARTNER_NM, LOGO_URL, OWN_YN FROM TB_CO_PARTNER WHERE USE_YN = 'Y' ORDER BY OWN_YN DESC, PARTNER_CD
+    </select>
+
+    <select id="selectPartner" resultType="com.example.demojsp.common.resume.mapper.PartnerRow">
+        SELECT PARTNER_CD, PARTNER_NM, LOGO_URL, OWN_YN FROM TB_CO_PARTNER WHERE PARTNER_CD = #{partnerCd} AND USE_YN = 'Y'
+    </select>
+
+    <insert id="insertPartner">
+        INSERT INTO TB_CO_PARTNER (PARTNER_CD, PARTNER_NM, LOGO_URL, OWN_YN, USE_YN)
+        VALUES (#{partnerCd}, #{partnerNm}, #{logoUrl}, #{ownYn}, 'Y')
+    </insert>
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 공통 채번 TB_CO_SEQ -->
+<mapper namespace="com.example.demojsp.common.store.mapper.CommonSequenceMapper">
+
+    <update id="increase">
+        UPDATE TB_CO_SEQ SET NEXT_VAL = NEXT_VAL + 1 WHERE SEQ_NM = #{seqName}
+    </update>
+
+    <select id="current" resultType="long">
+        SELECT NEXT_VAL FROM TB_CO_SEQ WHERE SEQ_NM = #{seqName}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO TB_CO_SEQ (SEQ_NM, NEXT_VAL) VALUES (#{seqName}, #{startValue})
+    </insert>
+</mapper>

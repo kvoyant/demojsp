@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /** 메모리 뱅킹메뉴 저장소 (seed 는 BankingMenuService 가 기동 시 적재, 재기동 시 초기화) */
 @org.springframework.stereotype.Repository
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "common.store.type", havingValue = "memory")
 public class InMemoryBankingMenuRepository implements BankingMenuRepository {
 
     private final Map<Long, BankingMenu> store = new LinkedHashMap<>();

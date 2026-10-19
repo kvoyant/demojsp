@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [공통#39·44·45] 배너팝업목록 TB_BANNER_POPUP (배너팝업 / 상단슬라이드배너) -->
+<mapper namespace="com.example.demojsp.common.banner.mapper.BannerPopupMapper">
+
+    <sql id="cols">
+        BANNER_ID, POPUP_TYPE, CATEGORY, CHANNELS, TITLE, CONTENT, IMAGE_URL, ALT_TEXT, LINK_URL, BG_COLOR,
+        START_AT, END_AT, DISPLAY_ORDER, USE_YN, REG_AT, REG_BY, UPD_AT, UPD_BY
+    </sql>
+
+    <!-- 공통#39: 게시기간 겹침 배너를 "전부" 가져온다 (LIMIT 1 금지 - AS-IS 1건 노출 원인). 정렬·필터는 서비스 규칙 -->
+    <select id="selectAll" resultType="com.example.demojsp.common.banner.mapper.BannerPopupRow">
+        SELECT <include refid="cols"/> FROM TB_BANNER_POPUP ORDER BY BANNER_ID
+    </select>
+
+    <select id="selectById" resultType="com.example.demojsp.common.banner.mapper.BannerPopupRow">
+        SELECT <include refid="cols"/> FROM TB_BANNER_POPUP WHERE BANNER_ID = #{bannerId}
+    </select>
+
+    <update id="update">
+        UPDATE TB_BANNER_POPUP SET
+            POPUP_TYPE = #{popupType}, CATEGORY = #{category}, CHANNELS = #{channels}, TITLE = #{title}, CONTENT = #{content},
+            IMAGE_URL = #{imageUrl}, ALT_TEXT = #{altText}, LINK_URL = #{linkUrl}, BG_COLOR = #{bgColor},
+            START_AT = #{startAt}, END_AT = #{endAt}, DISPLAY_ORDER = #{displayOrder}, USE_YN = #{useYn},
+            REG_AT = #{regAt}, REG_BY = #{regBy}, UPD_AT = #{updAt}, UPD_BY = #{updBy}
+        WHERE BANNER_ID = #{bannerId}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO TB_BANNER_POPUP (<include refid="cols"/>)
+        VALUES (#{bannerId}, #{popupType}, #{category}, #{channels}, #{title}, #{content}, #{imageUrl}, #{altText}, #{linkUrl},
+                #{bgColor}, #{startAt}, #{endAt}, #{displayOrder}, #{useYn}, #{regAt}, #{regBy}, #{updAt}, #{updBy})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM TB_BANNER_POPUP WHERE BANNER_ID = #{bannerId}
+    </delete>
+</mapper>

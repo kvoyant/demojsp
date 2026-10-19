@@ -14,6 +14,7 @@ import com.example.demojsp.common.resume.exception.ResumeException;
 import com.example.demojsp.common.resume.store.InMemoryResumeRepository;
 import com.example.demojsp.common.resume.store.PartnerRepository;
 import com.example.demojsp.common.resume.store.ResumeRepository;
+import com.example.demojsp.common.store.CommonSeeder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ import java.util.regex.Pattern;
  * + [이어하기]. 수신상품은 당행 상품만 등록 가능(당행 로고).
  */
 @Service
-public class ResumeService {
+public class ResumeService implements CommonSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(ResumeService.class);
     /** 감사 로그 (이어하기 진입·등록·종료) */
@@ -320,7 +321,29 @@ public class ResumeService {
         return v;
     }
 
-    /** yaml seed → 메모리 저장소 (기동 시각 기준 상대 일시) */
+    @Override
+    public String seedName() {
+        return "이어하기";
+    }
+
+    /** DB 저장소: 회사 마스터·이어하기 테이블이 비어 있으면 yaml seed 적재 (CommonStoreInitializer 가 기동 후 호출) */
+    @Override
+    public void seedIfEmpty() {
+        if (partnerRepository.findAll().isEmpty()) {
+            for (ResumeProperties.PartnerSeed p : properties.getPartners()) {
+                if (p.getCode() == null || p.getName() == null) continue;
+                partnerRepository.save(new Partner(p.getCode().strip().toUpperCase(Locale.ROOT), p.getName().strip(),
+                        p.getLogoUrl() == null || p.getLogoUrl().isBlank() ? null : p.getLogoUrl().strip(), p.isOwn()));
+            }
+            log.info("[이어하기] 회사 마스터 seed {}건", properties.getPartners().size());
+        }
+        if (repository.findAll().isEmpty()) {
+            loadSeed();
+            log.info("[이어하기] seed 적재 완료");
+        }
+    }
+
+    /** yaml seed → 저장소 (기동 시각 기준 상대 일시) */
     private void loadSeed() {
         LocalDateTime now = LocalDateTime.now(clock);
         for (ResumeProperties.Seed s : properties.getSeed()) {

@@ -24,4 +24,7 @@ public interface PartnerRepository {
     Optional<Partner> findByCode(String code);
 
     List<Partner> findAll();
+
+    /** 등록 (seed 적재용) */
+    void save(Partner partner);
 }

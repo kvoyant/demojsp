@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [공통#47·48·51] 수신/여신 상품 TB_PRODUCT (상품설정 - 홈 표시여부 HOME_DISP_YN · 홈 표시순서 HOME_DISP_ORD) -->
+<mapper namespace="com.example.demojsp.common.product.mapper.ProductMapper">
+
+    <sql id="cols">
+        PRODUCT_ID, PRODUCT_CD, PRODUCT_KIND, SUB_TYPE, PRODUCT_NM, SUMMARY, RATE_TEXT, ICON, DETAIL_URL,
+        ON_SALE_YN, HOME_DISP_YN, HOME_DISP_ORD, UPD_AT, UPD_BY
+    </sql>
+
+    <select id="selectAll" resultType="com.example.demojsp.common.product.mapper.ProductRow">
+        SELECT <include refid="cols"/> FROM TB_PRODUCT ORDER BY PRODUCT_ID
+    </select>
+
+    <select id="selectById" resultType="com.example.demojsp.common.product.mapper.ProductRow">
+        SELECT <include refid="cols"/> FROM TB_PRODUCT WHERE PRODUCT_ID = #{productId}
+    </select>
+
+    <update id="update">
+        UPDATE TB_PRODUCT SET
+            PRODUCT_CD = #{productCd}, PRODUCT_KIND = #{productKind}, SUB_TYPE = #{subType}, PRODUCT_NM = #{productNm},
+            SUMMARY = #{summary}, RATE_TEXT = #{rateText}, ICON = #{icon}, DETAIL_URL = #{detailUrl}, ON_SALE_YN = #{onSaleYn},
+            HOME_DISP_YN = #{homeDispYn}, HOME_DISP_ORD = #{homeDispOrd, jdbcType=INTEGER}, UPD_AT = #{updAt}, UPD_BY = #{updBy}
+        WHERE PRODUCT_ID = #{productId}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO TB_PRODUCT (<include refid="cols"/>)
+        VALUES (#{productId}, #{productCd}, #{productKind}, #{subType}, #{productNm}, #{summary}, #{rateText}, #{icon}, #{detailUrl},
+                #{onSaleYn}, #{homeDispYn}, #{homeDispOrd, jdbcType=INTEGER}, #{updAt}, #{updBy})
+    </insert>
+</mapper>

@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>ADMIN API 로 등록한 배너는 메모리에만 있으므로 재기동하면 seed 상태로 돌아간다. (local 테스트 용도)
  */
 @org.springframework.stereotype.Repository
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "common.store.type", havingValue = "memory")
 public class InMemoryBannerPopupRepository implements BannerPopupRepository {
 
     private final Map<Long, BannerPopup> store = new LinkedHashMap<>();

@@ -52,6 +52,18 @@ sms:
 #  - 샘플 화면: http://localhost:8080/common/identity/sample
 # =============================================================================
 common:
+  # ===========================================================================
+  # 공통모듈 저장소 - 이어하기 · 배너팝업 · 뱅킹메뉴 · 상품 (공통#39·43~51)
+  #  type: db     → MySQL(위 spring.datasource = demo_db02) 테이블 + MyBatis (mapper/common/*.xml)
+  #  type: memory → 메모리 (DB 없이 화면만 볼 때, 재기동 시 초기화)
+  #  init-schema  → 기동 시 schema-common-home.sql 실행 (CREATE TABLE IF NOT EXISTS, 기존 데이터 유지) - 운영 false
+  #  seed-if-empty→ 테이블이 비어 있을 때만 아래 각 모듈 seed 적재 - 운영 false
+  # ===========================================================================
+  store:
+    type: db
+    init-schema: true
+    seed-if-empty: true
+
   identity:
     base-url: ${IDENTITY_BASE_URL:http://localhost:8080}   # 콜백 URL 생성 기준 (운영: 외부 도메인)
     callback-path: /common/identity/callback

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /** 메모리 상품 저장소 (seed 는 ProductService 가 기동 시 적재, 재기동 시 초기화) */
 @org.springframework.stereotype.Repository
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "common.store.type", havingValue = "memory")
 public class InMemoryProductRepository implements ProductRepository {
 
     private final Map<Long, Product> store = new LinkedHashMap<>();

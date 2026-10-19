@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [공통#46] 뱅킹메뉴목록 TB_BANKING_MENU (APP 전체메뉴) -->
+<mapper namespace="com.example.demojsp.common.menu.mapper.BankingMenuMapper">
+
+    <sql id="cols">
+        MENU_ID, CATEGORY_CD, CATEGORY_NM, MENU_NM, MENU_URL, DISPLAY_ORDER, USE_YN, NEW_YN, UPD_AT, UPD_BY
+    </sql>
+
+    <!-- 등록 순(MENU_ID) = 카테고리 노출 순서 기준. 카테고리 안 순서는 서비스가 DISPLAY_ORDER 로 정렬 -->
+    <select id="selectAll" resultType="com.example.demojsp.common.menu.mapper.BankingMenuRow">
+        SELECT <include refid="cols"/> FROM TB_BANKING_MENU ORDER BY MENU_ID
+    </select>
+
+    <select id="selectById" resultType="com.example.demojsp.common.menu.mapper.BankingMenuRow">
+        SELECT <include refid="cols"/> FROM TB_BANKING_MENU WHERE MENU_ID = #{menuId}
+    </select>
+
+    <update id="update">
+        UPDATE TB_BANKING_MENU SET
+            CATEGORY_CD = #{categoryCd}, CATEGORY_NM = #{categoryNm}, MENU_NM = #{menuNm}, MENU_URL = #{menuUrl},
+            DISPLAY_ORDER = #{displayOrder}, USE_YN = #{useYn}, NEW_YN = #{newYn}, UPD_AT = #{updAt}, UPD_BY = #{updBy}
+        WHERE MENU_ID = #{menuId}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO TB_BANKING_MENU (<include refid="cols"/>)
+        VALUES (#{menuId}, #{categoryCd}, #{categoryNm}, #{menuNm}, #{menuUrl}, #{displayOrder}, #{useYn}, #{newYn}, #{updAt}, #{updBy})
+    </insert>
+</mapper>

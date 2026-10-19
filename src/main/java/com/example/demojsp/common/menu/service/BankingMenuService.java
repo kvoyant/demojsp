@@ -32,16 +32,18 @@ import java.util.regex.Pattern;
  * 표시순서는 카테고리 안에서 항상 1..N (중복·빈 번호 없음)으로 정리한다 - 원하는 자리에 넣으면 나머지가 밀린다.
  */
 @Service
-public class BankingMenuService {
+public class BankingMenuService implements com.example.demojsp.common.store.CommonSeeder {
 
     private static final Logger audit = LoggerFactory.getLogger("AUDIT.MENU");
+    private static final Logger log = LoggerFactory.getLogger(BankingMenuService.class);
     private static final Pattern RELATIVE = Pattern.compile("^/(?!/)[^\\s<>\"'\\\\]{0,299}$");
     static final int MAX_NAME = 20;
 
     private final BankingMenuRepository repository;
+    private final MenuProperties properties;
     private final Clock clock;
-    /** 카테고리 코드 → 이름 (seed 등록 순서 = 전체메뉴 카테고리 순서) */
-    private final Map<String, String> categories = new LinkedHashMap<>();
+    /** yaml 에 정의된 카테고리 코드 → 이름 (정의 순서 = 전체메뉴 카테고리 순서). DB 에만 있는 카테고리는 뒤에 붙는다 */
+    private final Map<String, String> seedCategories = new LinkedHashMap<>();
 
     @Autowired
     public BankingMenuService(BankingMenuRepository repository, MenuProperties properties) {
@@ -50,23 +52,51 @@ public class BankingMenuService {
 
     public BankingMenuService(BankingMenuRepository repository, MenuProperties properties, Clock clock) {
         this.repository = repository;
+        this.properties = properties;
         this.clock = clock;
         for (MenuProperties.BankingSeed s : properties.getBankingSeed()) {
-            categories.putIfAbsent(s.getCategory(), s.getCategoryName());
+            seedCategories.putIfAbsent(s.getCategory(), s.getCategoryName());
         }
         if (repository instanceof InMemoryBankingMenuRepository && repository.findAll().isEmpty()) {
-            LocalDateTime now = LocalDateTime.now(clock);
-            for (MenuProperties.BankingSeed s : properties.getBankingSeed()) {
-                repository.save(new BankingMenu(repository.nextId(), s.getCategory(), s.getCategoryName(), s.getName(),
-                        s.getUrl(), s.getDisplayOrder(), s.isUse(), s.isNewBadge(), now, "SYSTEM"));
-            }
+            loadSeed();
         }
+    }
+
+    @Override
+    public String seedName() {
+        return "뱅킹메뉴";
+    }
+
+    /** DB 저장소: 뱅킹메뉴 테이블이 비어 있으면 yaml seed 적재 (CommonStoreInitializer 가 기동 후 호출) */
+    @Override
+    public void seedIfEmpty() {
+        if (repository.findAll().isEmpty()) {
+            loadSeed();
+            log.info("[뱅킹메뉴] seed 적재 완료");
+        }
+    }
+
+    private void loadSeed() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        for (MenuProperties.BankingSeed s : properties.getBankingSeed()) {
+            repository.save(new BankingMenu(repository.nextId(), s.getCategory(), s.getCategoryName(), s.getName(),
+                    s.getUrl(), s.getDisplayOrder(), s.isUse(), s.isNewBadge(), now, "SYSTEM"));
+        }
+    }
+
+    /** 카테고리 = yaml 정의 + 저장소에만 있는 카테고리 (ADMIN 이 DB 에 직접 추가한 경우) */
+    private Map<String, String> categoryMap() {
+        Map<String, String> map = new LinkedHashMap<>(seedCategories);
+        for (BankingMenu m : repository.findAll()) {
+            map.putIfAbsent(m.category(), m.categoryName());
+        }
+        return map;
     }
 
     /** APP 전체메뉴 (사용 메뉴만, 카테고리별 표시순서) */
     public AllMenuView allMenu() {
         List<AllMenuView.Category> list = new ArrayList<>();
-        for (Map.Entry<String, String> c : categories.entrySet()) {
+        for (Map.Entry<String, String> c : categoryMap().entrySet()) {
             List<AllMenuView.Item> items = inCategory(c.getKey()).stream()
                     .filter(BankingMenu::use)
                     .map(m -> new AllMenuView.Item(m.id(), m.name(), m.url(), m.newBadge()))
@@ -79,14 +109,14 @@ public class BankingMenuService {
     /** ADMIN 뱅킹메뉴목록 (카테고리 필터 선택) */
     public List<BankingMenu> adminList(String category) {
         List<BankingMenu> rows = new ArrayList<>();
-        for (String c : categories.keySet()) {
+        for (String c : categoryMap().keySet()) {
             if (category == null || category.isBlank() || c.equals(category)) rows.addAll(inCategory(c));
         }
         return rows;
     }
 
     public Map<String, String> categories() {
-        return new LinkedHashMap<>(categories);
+        return categoryMap();
     }
 
     public synchronized BankingMenu register(BankingMenuRequest req, String adminId) {
@@ -155,7 +185,7 @@ public class BankingMenuService {
     }
 
     private void requireCategory(String category) {
-        if (category == null || !categories.containsKey(category)) {
+        if (category == null || !categoryMap().containsKey(category)) {
             throw new MenuException(MenuErrorCode.INVALID_CATEGORY, "카테고리");
         }
     }
@@ -174,7 +204,7 @@ public class BankingMenuService {
         if (!RELATIVE.matcher(url).matches()) throw new MenuException(MenuErrorCode.INVALID_URL, "URL");
         if (req.displayOrder() == null) throw new MenuException(MenuErrorCode.REQUIRED_MISSING, "표시순서");
         if (req.displayOrder() < 1 || req.displayOrder() > 999) throw new MenuException(MenuErrorCode.INVALID_ORDER, "표시순서");
-        return new BankingMenu(old == null ? 0 : old.id(), req.category(), categories.get(req.category()), name, url,
+        return new BankingMenu(old == null ? 0 : old.id(), req.category(), categoryMap().get(req.category()), name, url,
                 req.displayOrder(), req.use() == null || req.use(), Boolean.TRUE.equals(req.newBadge()),
                 LocalDateTime.now(clock), adminId);
     }
