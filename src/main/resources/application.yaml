@@ -214,6 +214,17 @@ common:
       - { biz-code: IDENTITY_ID_CARD, code: FACE_BIO,        title: "생체(얼굴)정보 수집·이용 동의", required: true, version: "1.0", sort-order: 2, content: "안면인증을 위해 촬영한 얼굴 이미지와 신분증 사진을 비교하며, 인증 완료 즉시 파기합니다." }
 
 # =============================================================================
+# [CF-BC-04 / 공통#22] 약관동의 - DB 방식 (com.example.demojsp.common.consent)  - REQ-AP-602
+#  - 약관 목록·문구·필수여부·순서는 전부 DB (schema-common-consent.sql 테이블 5개). yaml 에는 약관 내용이 없다.
+#  - 테이블 생성/샘플 적재는 common.store.init-schema / seed-if-empty 를 따른다 (data-common-consent.sql)
+#  - 기존 yaml 방식(common.terms, /common/terms/sample)은 그대로 둔다.
+#  - 사용자 화면: http://localhost:8080/common/consent/sample   어드민: http://localhost:8080/common/consent/admin
+# =============================================================================
+  consent:
+    valid-minutes: 30         # 약관동의 후 업무 서버 확인(checkAgreed)까지 허용 시간(분), 0 = 제한 없음
+    admin-api-open: true      # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+
+# =============================================================================
 # [CF-BC-20 / 공통#39] 배너팝업 공통모듈 (com.example.demojsp.common.banner)
 #  - 게시기간이 겹치는 배너 2건 이상 → 표시순서 정렬 후 전부 노출, 화면은 좌우 슬라이드
 #  - seed = "디지털어드민 배너팝업목록에 등록된 배너" 를 흉내낸 초기 데이터 (운영은 DB 구현체로 교체)
@@ -449,6 +460,24 @@ common:
           - { label: "샘플 화면", url: "/common/terms/sample", type: PAGE }
           - { label: "회원가입 약관 API", url: "/api/common/terms/SIGN_UP", type: API }
           - { label: "업무코드 목록(ADMIN)", url: "/api/common/terms-admin/biz-codes", type: API }
+      - cf-id: CF-BC-04
+        req-id: 공통#22 (REQ-AP-602)
+        title: 약관동의 - DB 방식 (필수 → 선택 2페이지, 디지털어드민 약관관리)
+        category: 공통 요구사항 > 약관동의
+        status: 개발완료
+        requested-at: "2026-09-15"
+        channels: [APP, PC WEB, 모집인WEB, ADMIN]
+        features:
+          - "약관 목록·문구·필수/선택·순서 전부 DB 동적 조회 - 업무 화면은 업무코드만 (하드코딩 금지)"
+          - "1페이지 필수 전체동의 → [다음] → 2페이지 선택 전체동의, 항목 터치 시 전문 보기 후 [동의]"
+          - "서버가 DB 기준으로 필수 동의 재검사, 개정본 시행 시 재동의 (CNS-102)"
+          - "동의내역 헤더/상세 테이블에 약관 버전·전문 해시·열람여부 저장 → 어드민 동의내역/증적"
+          - "디지털어드민: 업무코드 · 업무별 약관 · 약관 등록/개정(시행일) · 동의내역 화면"
+        guide: docs/COMMON_CONSENT_DB_GUIDE.md
+        links:
+          - { label: "사용자 화면", url: "/common/consent/sample", type: PAGE }
+          - { label: "어드민 약관관리", url: "/common/consent/admin", type: PAGE }
+          - { label: "회원가입 약관 API", url: "/api/common/consent/SIGN_UP", type: API }
       - cf-id: CF-BC-20
         req-id: 공통#39
         title: 배너팝업 복수 노출 (표시순서 · 좌우 슬라이드)

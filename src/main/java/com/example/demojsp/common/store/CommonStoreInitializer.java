@@ -23,7 +23,8 @@ import java.util.List;
 public class CommonStoreInitializer implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(CommonStoreInitializer.class);
-    static final String SCHEMA = "schema-common-home.sql";
+    /** 공통모듈 테이블 DDL (순서대로 실행) */
+    static final List<String> SCHEMAS = List.of("schema-common-home.sql", "schema-common-consent.sql");
 
     private final DataSource dataSource;
     private final CommonStoreProperties properties;
@@ -44,10 +45,12 @@ public class CommonStoreInitializer implements ApplicationRunner {
     public boolean initialize() {
         try {
             if (properties.isInitSchema()) {
-                ResourceDatabasePopulator p = new ResourceDatabasePopulator(new ClassPathResource(SCHEMA));
-                p.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
-                p.execute(dataSource);
-                log.info("[공통 DB] {} 적용 (CREATE TABLE IF NOT EXISTS)", SCHEMA);
+                for (String schema : SCHEMAS) {
+                    ResourceDatabasePopulator p = new ResourceDatabasePopulator(new ClassPathResource(schema));
+                    p.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
+                    p.execute(dataSource);
+                    log.info("[공통 DB] {} 적용 (CREATE TABLE IF NOT EXISTS)", schema);
+                }
             }
             if (properties.isSeedIfEmpty()) {
                 for (CommonSeeder s : seeders) {

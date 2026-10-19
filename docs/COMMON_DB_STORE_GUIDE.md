@@ -33,6 +33,7 @@ common:
 | `TB_BANNER_POPUP` | 배너팝업목록 (배너팝업 / 상단슬라이드배너, 배경색) | 39·44·45 |
 | `TB_BANKING_MENU` | 뱅킹메뉴목록 (전체메뉴) | 46 |
 | `TB_PRODUCT` | 수신/여신 상품 + 홈 표시여부·순서 | 47·48·51 |
+| `TB_CO_TERMS_BIZ` 외 4개 | 약관동의 DB 방식 - `schema-common-consent.sql` ([COMMON_CONSENT_DB_GUIDE.md](COMMON_CONSENT_DB_GUIDE.md)) | 22 |
 
 매퍼: `src/main/resources/mapper/common/*.xml`, 인터페이스 `com.example.demojsp.common.*.mapper` (`@MapperScan` 추가).
 저장소 구현은 `common.store.type` 으로 하나만 등록된다 (`MyBatis*Repository` ↔ `InMemory*Repository`). 서비스·API·화면은 변경 없음.

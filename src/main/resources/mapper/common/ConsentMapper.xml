@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  [CF-BC-04 / 공통#22] 약관동의 (DB 방식)  -  테이블: schema-common-consent.sql
+  "현재 약관" = 같은 약관코드 중 시행일(EFFECT_DT) <= 기준일 이고 USE_YN='Y' 인 가장 높은 버전
+-->
+<mapper namespace="com.example.demojsp.common.consent.mapper.ConsentMapper">
+
+    <!-- 현재 버전 번호 (약관코드 별칭 bt / t 기준으로 사용) -->
+    <sql id="currentVer">
+        (SELECT MAX(v.TERMS_VER) FROM TB_CO_TERMS v
+          WHERE v.TERMS_CD = bt.TERMS_CD AND v.USE_YN = 'Y' AND v.EFFECT_DT &lt;= #{baseDt})
+    </sql>
+
+    <!-- ================================================================ 사용자 화면 -->
+
+    <select id="selectBiz" resultType="com.example.demojsp.common.consent.dto.ConsentBizDto">
+        SELECT BIZ_CD, BIZ_NM, BIZ_DESC, USE_YN, REG_AT, REG_BY, UPD_AT, UPD_BY
+          FROM TB_CO_TERMS_BIZ
+         WHERE BIZ_CD = #{bizCd}
+    </select>
+
+    <select id="selectBizTerms" resultType="com.example.demojsp.common.consent.dto.ConsentTermsDto">
+        SELECT bt.BIZ_CD, bt.REQ_YN, bt.SORT_ORD, bt.USE_YN AS MAP_USE_YN,
+               t.TERMS_CD, t.TERMS_VER, t.TERMS_NM, t.PDF_URL, t.CN_HASH, t.EFFECT_DT, t.USE_YN
+          FROM TB_CO_BIZ_TERMS bt
+          JOIN TB_CO_TERMS t
+            ON t.TERMS_CD = bt.TERMS_CD
+           AND t.TERMS_VER = <include refid="currentVer"/>
+         WHERE bt.BIZ_CD = #{bizCd}
+           AND bt.USE_YN = 'Y'
+         ORDER BY bt.REQ_YN DESC, bt.SORT_ORD, bt.TERMS_CD
+    </select>
+
+    <select id="selectTermsVer" resultType="com.example.demojsp.common.consent.dto.ConsentTermsDto">
+        SELECT TERMS_CD, TERMS_VER, TERMS_NM, TERMS_CN, PDF_URL, CN_HASH, EFFECT_DT, USE_YN, REG_AT, REG_BY
+          FROM TB_CO_TERMS
+         WHERE TERMS_CD = #{termsCd} AND TERMS_VER = #{termsVer}
+    </select>
+
+    <update id="updateTermsHash">
+        UPDATE TB_CO_TERMS SET CN_HASH = #{cnHash}
+         WHERE TERMS_CD = #{termsCd} AND TERMS_VER = #{termsVer} AND CN_HASH IS NULL
+    </update>
+
+    <insert id="insertAgree" useGeneratedKeys="true" keyProperty="agreeNo" keyColumn="AGREE_NO">
+        INSERT INTO TB_CO_TERMS_AGREE (BIZ_CD, CUST_ID, SESS_KEY, CHANNEL, CLIENT_IP, AGREE_AT)
+        VALUES (#{bizCd}, #{custId}, #{sessKey}, #{channel}, #{clientIp}, #{agreeAt})
+    </insert>
+
+    <insert id="insertAgreeDtl">
+        INSERT INTO TB_CO_TERMS_AGREE_DTL (AGREE_NO, TERMS_CD, TERMS_VER, CN_HASH, REQ_YN, AGREE_YN, VIEW_YN)
+        VALUES (#{agreeNo}, #{termsCd}, #{termsVer}, #{cnHash}, #{reqYn}, #{agreeYn}, #{viewYn})
+    </insert>
+
+    <select id="selectAgree" resultType="com.example.demojsp.common.consent.dto.ConsentAgreeDto">
+        SELECT a.AGREE_NO, a.BIZ_CD, b.BIZ_NM, a.CUST_ID, a.SESS_KEY, a.CHANNEL, a.CLIENT_IP, a.AGREE_AT
+          FROM TB_CO_TERMS_AGREE a
+          LEFT JOIN TB_CO_TERMS_BIZ b ON b.BIZ_CD = a.BIZ_CD
+         WHERE a.AGREE_NO = #{agreeNo}
+    </select>
+
+    <select id="selectAgreeDtl" resultType="com.example.demojsp.common.consent.dto.ConsentAgreeItemDto">
+        SELECT d.AGREE_NO, d.TERMS_CD, t.TERMS_NM, d.TERMS_VER, d.CN_HASH, d.REQ_YN, d.AGREE_YN, d.VIEW_YN
+          FROM TB_CO_TERMS_AGREE_DTL d
+          LEFT JOIN TB_CO_TERMS t ON t.TERMS_CD = d.TERMS_CD AND t.TERMS_VER = d.TERMS_VER
+         WHERE d.AGREE_NO = #{agreeNo}
+         ORDER BY d.REQ_YN DESC, d.TERMS_CD
+    </select>
+
+    <!-- ================================================================ ADMIN -->
+
+    <select id="selectBizList" resultType="com.example.demojsp.common.consent.dto.ConsentBizDto">
+        SELECT b.BIZ_CD, b.BIZ_NM, b.BIZ_DESC, b.USE_YN, b.REG_AT, b.REG_BY, b.UPD_AT, b.UPD_BY,
+               (SELECT COUNT(*) FROM TB_CO_BIZ_TERMS x WHERE x.BIZ_CD = b.BIZ_CD AND x.USE_YN = 'Y' AND x.REQ_YN = 'Y') AS REQ_CNT,
+               (SELECT COUNT(*) FROM TB_CO_BIZ_TERMS x WHERE x.BIZ_CD = b.BIZ_CD AND x.USE_YN = 'Y' AND x.REQ_YN = 'N') AS OPT_CNT
+          FROM TB_CO_TERMS_BIZ b
+         ORDER BY b.REG_AT, b.BIZ_CD
+    </select>
+
+    <!-- 업무코드 등록/수정 (있으면 수정) -->
+    <insert id="mergeBiz">
+        INSERT INTO TB_CO_TERMS_BIZ (BIZ_CD, BIZ_NM, BIZ_DESC, USE_YN, REG_AT, REG_BY, UPD_AT, UPD_BY)
+        VALUES (#{bizCd}, #{bizNm}, #{bizDesc}, #{useYn}, #{updAt}, #{updBy}, #{updAt}, #{updBy})
+        ON DUPLICATE KEY UPDATE
+            BIZ_NM = VALUES(BIZ_NM), BIZ_DESC = VALUES(BIZ_DESC), USE_YN = VALUES(USE_YN),
+            UPD_AT = VALUES(UPD_AT), UPD_BY = VALUES(UPD_BY)
+    </insert>
+
+    <select id="selectBizTermsAll" resultType="com.example.demojsp.common.consent.dto.ConsentTermsDto">
+        SELECT bt.BIZ_CD, bt.REQ_YN, bt.SORT_ORD, bt.USE_YN AS MAP_USE_YN,
+               bt.TERMS_CD, t.TERMS_VER, t.TERMS_NM, t.EFFECT_DT, t.PDF_URL
+          FROM TB_CO_BIZ_TERMS bt
+          LEFT JOIN TB_CO_TERMS t
+            ON t.TERMS_CD = bt.TERMS_CD
+           AND t.TERMS_VER = <include refid="currentVer"/>
+         WHERE bt.BIZ_CD = #{bizCd}
+         ORDER BY bt.REQ_YN DESC, bt.SORT_ORD, bt.TERMS_CD
+    </select>
+
+    <delete id="deleteBizTerms">
+        DELETE FROM TB_CO_BIZ_TERMS WHERE BIZ_CD = #{bizCd}
+    </delete>
+
+    <insert id="insertBizTerms">
+        INSERT INTO TB_CO_BIZ_TERMS (BIZ_CD, TERMS_CD, REQ_YN, SORT_ORD, USE_YN, UPD_AT, UPD_BY)
+        VALUES (#{bizCd}, #{termsCd}, #{reqYn}, #{sortOrd}, #{mapUseYn}, #{regAt}, #{regBy})
+    </insert>
+
+    <select id="selectTermsList" resultType="com.example.demojsp.common.consent.dto.ConsentTermsDto">
+        SELECT t.TERMS_CD, t.TERMS_VER, t.TERMS_NM, t.EFFECT_DT, t.USE_YN, t.REG_AT, t.REG_BY,
+               (SELECT COUNT(*) FROM TB_CO_TERMS c WHERE c.TERMS_CD = t.TERMS_CD) AS VER_CNT,
+               (SELECT MAX(c.TERMS_VER) FROM TB_CO_TERMS c
+                 WHERE c.TERMS_CD = t.TERMS_CD AND c.USE_YN = 'Y' AND c.EFFECT_DT &lt;= #{baseDt}) AS CURRENT_VER
+          FROM TB_CO_TERMS t
+         WHERE t.TERMS_VER = (SELECT MAX(m.TERMS_VER) FROM TB_CO_TERMS m WHERE m.TERMS_CD = t.TERMS_CD)
+         ORDER BY t.TERMS_CD
+    </select>
+
+    <select id="selectTermsVersions" resultType="com.example.demojsp.common.consent.dto.ConsentTermsDto">
+        SELECT TERMS_CD, TERMS_VER, TERMS_NM, PDF_URL, CN_HASH, EFFECT_DT, USE_YN, REG_AT, REG_BY
+          FROM TB_CO_TERMS
+         WHERE TERMS_CD = #{termsCd}
+         ORDER BY TERMS_VER DESC
+    </select>
+
+    <select id="selectLastVer" resultType="com.example.demojsp.common.consent.dto.ConsentTermsDto">
+        SELECT TERMS_CD, TERMS_VER, TERMS_NM, EFFECT_DT
+          FROM TB_CO_TERMS
+         WHERE TERMS_CD = #{termsCd}
+         ORDER BY TERMS_VER DESC
+         LIMIT 1
+    </select>
+
+    <insert id="insertTerms">
+        INSERT INTO TB_CO_TERMS (TERMS_CD, TERMS_VER, TERMS_NM, TERMS_CN, PDF_URL, CN_HASH, EFFECT_DT, USE_YN, REG_AT, REG_BY)
+        VALUES (#{termsCd}, #{termsVer}, #{termsNm}, #{termsCn}, #{pdfUrl}, #{cnHash}, #{effectDt}, 'Y', #{regAt}, #{regBy})
+    </insert>
+
+    <select id="selectAgreeList" resultType="com.example.demojsp.common.consent.dto.ConsentAgreeDto">
+        SELECT a.AGREE_NO, a.BIZ_CD, b.BIZ_NM, a.CUST_ID, a.CHANNEL, a.CLIENT_IP, a.AGREE_AT,
+               (SELECT COUNT(*) FROM TB_CO_TERMS_AGREE_DTL d WHERE d.AGREE_NO = a.AGREE_NO AND d.AGREE_YN = 'Y') AS AGREE_CNT,
+               (SELECT COUNT(*) FROM TB_CO_TERMS_AGREE_DTL d WHERE d.AGREE_NO = a.AGREE_NO) AS TOTAL_CNT
+          FROM TB_CO_TERMS_AGREE a
+          LEFT JOIN TB_CO_TERMS_BIZ b ON b.BIZ_CD = a.BIZ_CD
+        <where>
+            <if test="bizCd != null and bizCd != ''">AND a.BIZ_CD = #{bizCd}</if>
+            <if test="custId != null and custId != ''">AND a.CUST_ID = #{custId}</if>
+        </where>
+         ORDER BY a.AGREE_NO DESC
+         LIMIT #{limit}
+    </select>
+</mapper>
