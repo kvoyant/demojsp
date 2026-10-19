@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- [CF-BC-03 / 공통#21] 휴대폰 본인인증 NICE ID  -  테이블: schema-common-niceid.sql -->
+<mapper namespace="com.example.demojsp.common.niceid.mapper.NiceIdMapper">
+
+    <sql id="purposeCols">
+        PURPOSE_CD, PURPOSE_NM, CONSENT_BIZ_CD, SMS_YN, MO_YN, MIN_AGE, FOREIGNER_YN, WATCH_CHECK_YN,
+        CODE_VALID_SEC, MAX_TRY, RESULT_VALID_MIN, USE_YN, UPD_AT, UPD_BY
+    </sql>
+
+    <sql id="reqCols">
+        r.REQ_NO, r.PURPOSE_CD, r.METHOD, r.CHANNEL, r.AGREE_NO, r.CUST_ID, r.SESS_KEY, r.CUST_NM, r.BIRTH_DT, r.PHONE_MASK,
+        r.PROVIDER_TX, r.MO_CODE, r.TRY_CNT, r.EXPIRE_AT, r.STATUS, r.RESULT_CD, r.CI_VAL, r.DI_VAL, r.CELL_NO,
+        r.GENDER, r.NATIONAL_CD, r.AGE, r.CLIENT_IP, r.REQ_AT, r.DONE_AT
+    </sql>
+
+    <!-- ================================================================ 정책 -->
+    <select id="selectPurpose" resultType="com.example.demojsp.common.niceid.dto.IdvPurposeDto">
+        SELECT <include refid="purposeCols"/> FROM TB_CO_IDV_PURPOSE WHERE PURPOSE_CD = #{purposeCd}
+    </select>
+
+    <select id="selectPurposes" resultType="com.example.demojsp.common.niceid.dto.IdvPurposeDto">
+        SELECT <include refid="purposeCols"/> FROM TB_CO_IDV_PURPOSE ORDER BY UPD_AT, PURPOSE_CD
+    </select>
+
+    <insert id="mergePurpose">
+        INSERT INTO TB_CO_IDV_PURPOSE (<include refid="purposeCols"/>)
+        VALUES (#{purposeCd}, #{purposeNm}, #{consentBizCd}, #{smsYn}, #{moYn}, #{minAge}, #{foreignerYn}, #{watchCheckYn},
+                #{codeValidSec}, #{maxTry}, #{resultValidMin}, #{useYn}, #{updAt}, #{updBy})
+        ON DUPLICATE KEY UPDATE
+            PURPOSE_NM = VALUES(PURPOSE_NM), CONSENT_BIZ_CD = VALUES(CONSENT_BIZ_CD), SMS_YN = VALUES(SMS_YN), MO_YN = VALUES(MO_YN),
+            MIN_AGE = VALUES(MIN_AGE), FOREIGNER_YN = VALUES(FOREIGNER_YN), WATCH_CHECK_YN = VALUES(WATCH_CHECK_YN),
+            CODE_VALID_SEC = VALUES(CODE_VALID_SEC), MAX_TRY = VALUES(MAX_TRY), RESULT_VALID_MIN = VALUES(RESULT_VALID_MIN),
+            USE_YN = VALUES(USE_YN), UPD_AT = VALUES(UPD_AT), UPD_BY = VALUES(UPD_BY)
+    </insert>
+
+    <!-- ================================================================ 요청 · 결과 -->
+    <insert id="insertReq">
+        INSERT INTO TB_CO_IDV_REQ (REQ_NO, PURPOSE_CD, METHOD, CHANNEL, AGREE_NO, CUST_ID, SESS_KEY, CUST_NM, BIRTH_DT, PHONE_MASK,
+                                   PROVIDER_TX, MO_CODE, TRY_CNT, EXPIRE_AT, STATUS, CLIENT_IP, REQ_AT)
+        VALUES (#{reqNo}, #{purposeCd}, #{method}, #{channel}, #{agreeNo}, #{custId}, #{sessKey}, #{custNm}, #{birthDt}, #{phoneMask},
+                #{providerTx}, #{moCode}, 0, #{expireAt}, 'REQUESTED', #{clientIp}, #{reqAt})
+    </insert>
+
+    <select id="selectReq" resultType="com.example.demojsp.common.niceid.dto.IdvReqDto">
+        SELECT <include refid="reqCols"/>, p.PURPOSE_NM
+          FROM TB_CO_IDV_REQ r
+          LEFT JOIN TB_CO_IDV_PURPOSE p ON p.PURPOSE_CD = r.PURPOSE_CD
+         WHERE r.REQ_NO = #{reqNo}
+    </select>
+
+    <update id="increaseTry">
+        UPDATE TB_CO_IDV_REQ SET TRY_CNT = TRY_CNT + 1 WHERE REQ_NO = #{reqNo} AND STATUS = 'REQUESTED'
+    </update>
+
+    <update id="updateResult">
+        UPDATE TB_CO_IDV_REQ
+           SET STATUS = #{status}, RESULT_CD = #{resultCd}, CI_VAL = #{ciVal}, DI_VAL = #{diVal}, CELL_NO = #{cellNo},
+               GENDER = #{gender}, NATIONAL_CD = #{nationalCd}, AGE = #{age}, DONE_AT = #{doneAt}
+         WHERE REQ_NO = #{reqNo} AND STATUS = 'REQUESTED'
+    </update>
+
+    <select id="countRecentBySession" resultType="int">
+        SELECT COUNT(*) FROM TB_CO_IDV_REQ WHERE SESS_KEY = #{sessKey} AND REQ_AT &gt;= #{since}
+    </select>
+
+    <!-- ================================================================ 유의고객 (기존 TB_WATCHLIST) -->
+    <select id="countWatchlist" resultType="int">
+        SELECT COUNT(*) FROM TB_WATCHLIST WHERE CI_VAL = #{ci} AND BLOCK_YN = 'Y'
+    </select>
+
+    <select id="existsWatchlist" resultType="int">
+        SELECT COUNT(*) FROM TB_WATCHLIST WHERE CI_VAL = #{ci}
+    </select>
+
+    <insert id="insertWatchlist">
+        INSERT INTO TB_WATCHLIST (CI_VAL, CUST_NM, RISK_GRADE, RISK_TYPE, RISK_REASON, BLOCK_YN, REG_DT, REG_USER_ID)
+        VALUES (#{ci}, #{name}, #{grade}, #{type}, #{reason}, 'Y', CURRENT_TIMESTAMP, 'SEED')
+    </insert>
+
+    <!-- ================================================================ ADMIN 이력 -->
+    <select id="selectReqList" resultType="com.example.demojsp.common.niceid.dto.IdvReqDto">
+        SELECT <include refid="reqCols"/>, p.PURPOSE_NM
+          FROM TB_CO_IDV_REQ r
+          LEFT JOIN TB_CO_IDV_PURPOSE p ON p.PURPOSE_CD = r.PURPOSE_CD
+        <where>
+            <if test="purposeCd != null">AND r.PURPOSE_CD = #{purposeCd}</if>
+            <if test="status != null">AND r.STATUS = #{status}</if>
+        </where>
+         ORDER BY r.REQ_AT DESC
+         LIMIT #{limit}
+    </select>
+</mapper>

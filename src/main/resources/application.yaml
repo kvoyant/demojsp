@@ -431,6 +431,20 @@ common:
     admin-api-open: true                # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
 
 # =============================================================================
+# [CF-BC-03 / 공통#21] 휴대폰 본인인증 NICE ID - DB 방식 (com.example.demojsp.common.niceid) - REQ-AP-601
+#  - 업무별 정책(약관·SMS/MO·최소나이·외국인·유의고객·시간·횟수)은 DB (schema-common-niceid.sql)
+#  - 약관은 공통#22 약관동의 (업무코드 IDENTITY_NICE: 본인확인서비스 · 고유식별정보 · 비여신금융거래)
+#  - 기존 NICE 구현(domain/auth, common/identity)은 그대로 둔다.
+#  - 사용자 화면: /common/niceid/sample   어드민: /common/niceid/admin
+# =============================================================================
+  niceid:
+    gateway: mock                 # mock = 시뮬레이터 (NICE 계약 후 실연동 구현체로 교체)
+    expose-test-code: true        # local 전용! 시뮬레이터 인증번호를 응답에 포함 - 운영 false
+    demo-api-open: true           # local 전용! MO 문자 발송 흉내 API - 운영 false
+    max-requests-per10-min: 10    # 같은 세션 10분 내 인증 요청 상한 (문자 폭탄·비용 방지)
+    admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+
+# =============================================================================
 # [공통#51] 저축 탭 메인 콘텐츠 (com.example.demojsp.common.savings) - 계좌 미보유 대상
 #  [계좌 개설하기] → 상품 원장(common.product)의 입출금통장 상품안내페이지 (ADMIN 변경 자동 반영)
 # =============================================================================
@@ -768,3 +782,21 @@ common:
           - { label: "어드민 공지사항 관리", url: "/common/notice/admin", type: PAGE }
           - { label: "메인 띠 API", url: "/api/common/notice/strip", type: API }
           - { label: "상품별 공지 API", url: "/api/common/notice?scope=PRODUCT", type: API }
+      - cf-id: CF-BC-03
+        req-id: 공통#21 (REQ-AP-601)
+        title: 휴대폰 본인인증 NICE ID - DB 방식 (통신사 미지정 · MO 기기인증 · 비여신 약관)
+        category: 공통 요구사항 > 본인인증
+        status: 개발완료
+        requested-at: "2026-09-15"
+        channels: [APP, PC WEB, ADMIN]
+        features:
+          - "통신사 미지정: 성명 + 생년월일 + 휴대폰번호만 (통신사 선택 없음)"
+          - "MO 인증 결합: 휴대폰번호 입력 생략, 고객 휴대폰에서 문자 발송 → 번호·기기 소지 확인"
+          - "비여신금융거래 약관 추가 = 공통#22 약관동의(DB) 연동, 서버가 약관동의 번호로 재확인"
+          - "주민번호 → CI: 유의고객(CI) · 미성년자(만 나이) · 외국인(내외국인) 검사, 업무별 기준은 DB 정책"
+          - "요청·결과 이력 DB 저장 (CI·휴대폰 마스킹 조회), 오입력 횟수·유효시간·과다요청 제한, 기존 NICE 구현 유지"
+        guide: docs/COMMON_NICEID_GUIDE.md
+        links:
+          - { label: "사용자 화면", url: "/common/niceid/sample", type: PAGE }
+          - { label: "어드민 정책·이력", url: "/common/niceid/admin", type: PAGE }
+          - { label: "회원가입 정책 API", url: "/api/common/niceid/purposes/SIGN_UP", type: API }
