@@ -726,3 +726,14 @@ common:
           - { label: "사용자 화면 (APP/PC)", url: "/common/product-tab/sample", type: PAGE }
           - { label: "어드민 상품 탭 관리", url: "/common/product-tab/admin", type: PAGE }
           - { label: "상품 탭 API", url: "/api/common/product-tab?channel=APP", type: API }
+      - cf-id: "-"
+        req-id: 공통#27 (REQ-AP-608)
+        title: 상품 별 안내페이지 (콘텐츠 양식 획일화) - 9/30 요건 삭제
+        category: 공통 요구사항 > 상품 > 상품 별 안내페이지
+        status: 요건삭제
+        requested-at: "2026-09-15"
+        channels: [APP, PC WEB]
+        features:
+          - "요구사항정의서(공통) 27번 비고: '9/30 요건 삭제' - 개발 대상 아님"
+          - "보충 정의서 RA-027: 9/30 요건 삭제로 공통기능 대상에서 제외 (공통기능 매핑 없음)"
+          - "상품안내 URL 은 상품 원장(공통#48 상품설정)의 DETAIL_URL 을 그대로 사용 - 요건이 되살아나면 상품안내 콘텐츠 양식을 이 원장에 연결"
