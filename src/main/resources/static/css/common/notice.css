@@ -1,0 +1,77 @@
+/*
+ * =============================================================================
+ *  [CF-BC-20 / 공통#28] 공지사항 공통 컴포넌트  -  /css/common/notice.css
+ *  색상은 ui-tokens.css 변수 사용 (없으면 기본값). 접두어 ntc- 로 기존 화면 CSS 와 충돌 방지.
+ * =============================================================================
+ */
+
+/* ---------------------------------------------------------------- ① 메인 띠
+   이어하기 카드(흰 카드 · 그림자 · 진행단계)와 헷갈리지 않도록: 헤더 바로 아래 한 줄, 회색 바탕, 좌측 "공지" 표시 */
+.ntc-strip {
+    display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 14px;
+    background: var(--ui-surface-sub, #f3f4f6); color: var(--ui-text, #111827); text-decoration: none;
+    font-family: var(--ui-font, 'Noto Sans KR', 'Malgun Gothic', sans-serif); font-size: .875rem;
+}
+.ntc-strip:focus-visible { outline: none; box-shadow: inset var(--ui-focus-ring, 0 0 0 3px #1d70e8); }
+.ntc-strip-label {
+    flex: none; font-size: .75rem; font-weight: 700; color: var(--ui-primary, #0d47a1);
+    border: 1px solid var(--ui-primary, #0d47a1); border-radius: 4px; padding: 0 5px; line-height: 1.5;
+}
+.ntc-strip-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ntc-strip-arrow { flex: none; font-size: 1.125rem; color: var(--ui-line-strong, #9ca3af); }
+
+/* ---------------------------------------------------------------- ② 목록 */
+.ntc-root { font-family: var(--ui-font, 'Noto Sans KR', 'Malgun Gothic', sans-serif); color: var(--ui-text, #111827); }
+.ntc-root a { color: inherit; text-decoration: none; }
+.ntc-tabs { display: flex; border-bottom: 1px solid var(--ui-surface-press, #e5e7eb); margin-bottom: 10px; }
+.ntc-tab {
+    flex: 1; border: 0; background: none; padding: 12px 4px; font: inherit; font-size: .9375rem; color: var(--ui-text-sub, #4b5563);
+    border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer;
+}
+.ntc-tab.on { color: var(--ui-text, #111827); font-weight: 700; border-bottom-color: var(--ui-text, #111827); }
+.ntc-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 10px; scrollbar-width: none; }
+.ntc-chips::-webkit-scrollbar { display: none; }
+.ntc-chip {
+    flex: none; border: 1px solid var(--ui-line, #d1d5db); background: #fff; border-radius: 16px; padding: 5px 12px;
+    font: inherit; font-size: .8125rem; color: var(--ui-text-sub, #4b5563); cursor: pointer;
+}
+.ntc-chip.on { background: var(--ui-text, #111827); border-color: var(--ui-text, #111827); color: #fff; }
+.ntc-list { list-style: none; margin: 0; padding: 0; }
+.ntc-item { display: block; padding: 14px 2px; border-bottom: 1px solid var(--ui-surface-press, #e5e7eb); }
+.ntc-item:focus-visible, .ntc-tab:focus-visible, .ntc-chip:focus-visible { outline: none; box-shadow: var(--ui-focus-ring, 0 0 0 3px #1d70e8); }
+.ntc-item-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ntc-fix { font-size: .6875rem; font-weight: 700; color: #fff; background: var(--ui-error, #c62828); border-radius: 4px; padding: 0 5px; }
+.ntc-type { font-size: .6875rem; font-weight: 700; border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; }
+.ntc-scope { font-size: .75rem; color: var(--ui-text-sub, #4b5563); }
+.ntc-item-title { display: block; margin-top: 4px; font-size: .9375rem; font-weight: 600; line-height: 1.45; word-break: keep-all; }
+.ntc-item-date { display: block; margin-top: 2px; font-size: .75rem; color: var(--ui-text-sub, #4b5563); }
+.ntc-empty { text-align: center; color: var(--ui-text-sub, #4b5563); padding: 40px 0; list-style: none; }
+.ntc-more[hidden], .ntc-chips[hidden] { display: none; }
+.ntc-more {
+    display: block; width: 100%; margin-top: 12px; padding: 12px; border: 1px solid var(--ui-line, #d1d5db); border-radius: 10px;
+    background: #fff; font: inherit; font-size: .875rem; cursor: pointer;
+}
+
+/* ---------------------------------------------------------------- ③ 상세 */
+.ntc-detail-head { padding-bottom: 14px; border-bottom: 1px solid var(--ui-surface-press, #e5e7eb); }
+.ntc-detail-title { font-size: 1.25rem; font-weight: 800; line-height: 1.4; margin: 8px 0 4px; word-break: keep-all; }
+.ntc-detail-meta { font-size: .8125rem; color: var(--ui-text-sub, #4b5563); margin: 0; }
+.ntc-detail-body { padding: 18px 0; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; font-size: .9375rem; line-height: 1.75; }
+
+/* ---------------------------------------------------------------- ④ 메인 팝업 (신규 UI: 아이콘 없음, 하단 버튼 한 줄) */
+.ntc-pop-dim {
+    position: fixed; inset: 0; z-index: 2000; background: var(--ui-dim, rgba(17, 24, 39, .56));
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    font-family: var(--ui-font, 'Noto Sans KR', 'Malgun Gothic', sans-serif);
+}
+.ntc-pop { width: 100%; max-width: 340px; background: #fff; border-radius: 16px; overflow: hidden; outline: none; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
+.ntc-pop-body { padding: 24px 22px 18px; max-height: 60vh; overflow-y: auto; }
+.ntc-pop-kind { margin: 0 0 6px; font-size: .75rem; font-weight: 700; color: var(--ui-text-sub, #4b5563); }
+.ntc-pop-title { margin: 0 0 12px; font-size: 1.125rem; font-weight: 800; line-height: 1.4; color: var(--ui-text, #111827); word-break: keep-all; }
+.ntc-pop-content { font-size: .875rem; line-height: 1.65; color: #374151; white-space: pre-wrap; word-break: keep-all; }
+.ntc-pop-more { display: inline-block; margin-top: 12px; font-size: .875rem; font-weight: 700; color: var(--ui-primary, #0d47a1); text-decoration: none; }
+.ntc-pop-foot { display: flex; border-top: 1px solid var(--ui-surface-press, #e5e7eb); }
+.ntc-pop-btn { flex: 1; height: 52px; border: 0; background: #fff; font: inherit; font-size: .9375rem; cursor: pointer; }
+.ntc-pop-btn.sub { color: var(--ui-text-sub, #4b5563); border-right: 1px solid var(--ui-surface-press, #e5e7eb); }
+.ntc-pop-btn.main { color: var(--ui-primary, #0d47a1); font-weight: 700; }
+.ntc-pop-btn:focus-visible, .ntc-pop-more:focus-visible { outline: none; box-shadow: inset var(--ui-focus-ring, 0 0 0 3px #1d70e8); }

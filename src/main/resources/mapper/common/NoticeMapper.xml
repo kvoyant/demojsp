@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  [CF-BC-20 / 공통#28] 공지사항  -  테이블: schema-common-notice.sql
+  게시 중 = USE_YN='Y' AND START_AT <= now AND (END_AT IS NULL OR END_AT > now)
+  대상명(targetNm) = 상품별이면 TB_PRODUCT.PRODUCT_NM, 업무별이면 TB_CO_NOTICE_BIZ.BIZ_NM
+-->
+<mapper namespace="com.example.demojsp.common.notice.mapper.NoticeMapper">
+
+    <!-- 목록 컬럼 (내용 제외) + 유형 · 대상명 -->
+    <sql id="listCols">
+        n.NOTICE_ID, n.SCOPE_CD, n.TARGET_CD, n.TYPE_CD, n.TITLE, n.START_AT, n.END_AT,
+        n.FIX_YN, n.STRIP_YN, n.POPUP_YN, n.USE_YN, n.VIEW_CNT, n.REG_AT, n.REG_BY, n.UPD_AT, n.UPD_BY,
+        t.TYPE_NM, t.BADGE_COLOR AS TYPE_COLOR,
+        COALESCE(p.PRODUCT_NM, b.BIZ_NM) AS TARGET_NM
+    </sql>
+
+    <sql id="joins">
+          FROM TB_CO_NOTICE n
+          LEFT JOIN TB_CO_NOTICE_TYPE t ON t.TYPE_CD = n.TYPE_CD
+          LEFT JOIN TB_PRODUCT p        ON n.SCOPE_CD = 'PRODUCT' AND p.PRODUCT_CD = n.TARGET_CD
+          LEFT JOIN TB_CO_NOTICE_BIZ b  ON n.SCOPE_CD = 'BIZ' AND b.BIZ_CD = n.TARGET_CD
+    </sql>
+
+    <!-- 게시 중 조건 -->
+    <sql id="posted">
+           n.USE_YN = 'Y'
+       AND n.START_AT &lt;= #{now}
+       AND (n.END_AT IS NULL OR n.END_AT &gt; #{now})
+    </sql>
+
+    <sql id="filters">
+        <if test="scopeCd != null">AND n.SCOPE_CD = #{scopeCd}</if>
+        <if test="targetCd != null">AND n.TARGET_CD = #{targetCd}</if>
+        <if test="typeCd != null">AND n.TYPE_CD = #{typeCd}</if>
+    </sql>
+
+    <!-- ================================================================ 사용자 화면 -->
+
+    <select id="selectPostedList" resultType="com.example.demojsp.common.notice.dto.NoticeDto">
+        SELECT <include refid="listCols"/>
+        <include refid="joins"/>
+         WHERE <include refid="posted"/>
+               <include refid="filters"/>
+         ORDER BY n.FIX_YN DESC, n.START_AT DESC, n.NOTICE_ID DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPosted" resultType="int">
+        SELECT COUNT(*) FROM TB_CO_NOTICE n
+         WHERE <include refid="posted"/>
+               <include refid="filters"/>
+    </select>
+
+    <select id="selectStrip" resultType="com.example.demojsp.common.notice.dto.NoticeDto">
+        SELECT <include refid="listCols"/>
+        <include refid="joins"/>
+         WHERE <include refid="posted"/>
+           AND n.STRIP_YN = 'Y'
+         ORDER BY n.START_AT DESC, n.NOTICE_ID DESC                 <!-- 요구사항 2: 최신공지 -->
+         LIMIT 1
+    </select>
+
+    <select id="selectPopups" resultType="com.example.demojsp.common.notice.dto.NoticeDto">
+        SELECT <include refid="listCols"/>, n.CONTENT
+        <include refid="joins"/>
+         WHERE <include refid="posted"/>
+           AND n.POPUP_YN = 'Y'
+         ORDER BY n.FIX_YN DESC, n.START_AT DESC, n.NOTICE_ID DESC
+    </select>
+
+    <select id="selectPosted" resultType="com.example.demojsp.common.notice.dto.NoticeDto">
+        SELECT <include refid="listCols"/>, n.CONTENT
+        <include refid="joins"/>
+         WHERE n.NOTICE_ID = #{noticeId}
+           AND <include refid="posted"/>
+    </select>
+
+    <update id="increaseViewCnt">
+        UPDATE TB_CO_NOTICE SET VIEW_CNT = VIEW_CNT + 1 WHERE NOTICE_ID = #{noticeId}
+    </update>
+
+    <select id="selectPostedTargets" resultType="com.example.demojsp.common.notice.dto.NoticeTargetDto">
+        SELECT n.SCOPE_CD, n.TARGET_CD, MAX(COALESCE(p.PRODUCT_NM, b.BIZ_NM, n.TARGET_CD)) AS TARGET_NM, COUNT(*) AS CNT,
+               MIN(COALESCE(b.SORT_ORD, 0)) AS SORT_KEY
+          FROM TB_CO_NOTICE n
+          LEFT JOIN TB_PRODUCT p       ON n.SCOPE_CD = 'PRODUCT' AND p.PRODUCT_CD = n.TARGET_CD
+          LEFT JOIN TB_CO_NOTICE_BIZ b ON n.SCOPE_CD = 'BIZ' AND b.BIZ_CD = n.TARGET_CD
+         WHERE <include refid="posted"/>
+           AND n.SCOPE_CD IN ('PRODUCT', 'BIZ')
+         GROUP BY n.SCOPE_CD, n.TARGET_CD
+         ORDER BY n.SCOPE_CD, SORT_KEY, TARGET_NM
+    </select>
+
+    <!-- ================================================================ ADMIN -->
+
+    <select id="selectAdminList" resultType="com.example.demojsp.common.notice.dto.NoticeDto">
+        SELECT <include refid="listCols"/>
+        <include refid="joins"/>
+        <where>
+            <if test="scopeCd != null">AND n.SCOPE_CD = #{scopeCd}</if>
+            <if test="typeCd != null">AND n.TYPE_CD = #{typeCd}</if>
+            <if test="keyword != null">AND n.TITLE LIKE CONCAT('%', #{keyword}, '%')</if>
+        </where>
+         ORDER BY n.START_AT DESC, n.NOTICE_ID DESC
+         LIMIT #{limit}
+    </select>
+
+    <select id="selectNotice" resultType="com.example.demojsp.common.notice.dto.NoticeDto">
+        SELECT <include refid="listCols"/>, n.CONTENT
+        <include refid="joins"/>
+         WHERE n.NOTICE_ID = #{noticeId}
+    </select>
+
+    <insert id="insertNotice" useGeneratedKeys="true" keyProperty="noticeId" keyColumn="NOTICE_ID">
+        INSERT INTO TB_CO_NOTICE (SCOPE_CD, TARGET_CD, TYPE_CD, TITLE, CONTENT, START_AT, END_AT, FIX_YN, STRIP_YN, POPUP_YN,
+                                  USE_YN, VIEW_CNT, REG_AT, REG_BY, UPD_AT, UPD_BY)
+        VALUES (#{scopeCd}, #{targetCd}, #{typeCd}, #{title}, #{content}, #{startAt}, #{endAt}, #{fixYn}, #{stripYn}, #{popupYn},
+                #{useYn}, 0, #{updAt}, #{updBy}, #{updAt}, #{updBy})
+    </insert>
+
+    <update id="updateNotice">
+        UPDATE TB_CO_NOTICE
+           SET SCOPE_CD = #{scopeCd}, TARGET_CD = #{targetCd}, TYPE_CD = #{typeCd}, TITLE = #{title}, CONTENT = #{content},
+               START_AT = #{startAt}, END_AT = #{endAt}, FIX_YN = #{fixYn}, STRIP_YN = #{stripYn}, POPUP_YN = #{popupYn},
+               USE_YN = #{useYn}, UPD_AT = #{updAt}, UPD_BY = #{updBy}
+         WHERE NOTICE_ID = #{noticeId}
+    </update>
+
+    <select id="selectTypes" resultType="com.example.demojsp.common.notice.dto.NoticeTypeDto">
+        SELECT t.TYPE_CD, t.TYPE_NM, t.BADGE_COLOR, t.SORT_ORD, t.USE_YN, t.UPD_AT, t.UPD_BY,
+               (SELECT COUNT(*) FROM TB_CO_NOTICE n WHERE n.TYPE_CD = t.TYPE_CD) AS NOTICE_CNT
+          FROM TB_CO_NOTICE_TYPE t
+         ORDER BY t.SORT_ORD, t.TYPE_CD
+    </select>
+
+    <select id="selectType" resultType="com.example.demojsp.common.notice.dto.NoticeTypeDto">
+        SELECT TYPE_CD, TYPE_NM, BADGE_COLOR, SORT_ORD, USE_YN, UPD_AT, UPD_BY FROM TB_CO_NOTICE_TYPE WHERE TYPE_CD = #{typeCd}
+    </select>
+
+    <insert id="mergeType">
+        INSERT INTO TB_CO_NOTICE_TYPE (TYPE_CD, TYPE_NM, BADGE_COLOR, SORT_ORD, USE_YN, UPD_AT, UPD_BY)
+        VALUES (#{typeCd}, #{typeNm}, #{badgeColor}, #{sortOrd}, #{useYn}, #{updAt}, #{updBy})
+        ON DUPLICATE KEY UPDATE
+            TYPE_NM = VALUES(TYPE_NM), BADGE_COLOR = VALUES(BADGE_COLOR), SORT_ORD = VALUES(SORT_ORD),
+            USE_YN = VALUES(USE_YN), UPD_AT = VALUES(UPD_AT), UPD_BY = VALUES(UPD_BY)
+    </insert>
+
+    <select id="selectBizs" resultType="com.example.demojsp.common.notice.dto.NoticeBizDto">
+        SELECT BIZ_CD, BIZ_NM, SORT_ORD, USE_YN, UPD_AT, UPD_BY FROM TB_CO_NOTICE_BIZ ORDER BY SORT_ORD, BIZ_CD
+    </select>
+
+    <select id="selectBiz" resultType="com.example.demojsp.common.notice.dto.NoticeBizDto">
+        SELECT BIZ_CD, BIZ_NM, SORT_ORD, USE_YN, UPD_AT, UPD_BY FROM TB_CO_NOTICE_BIZ WHERE BIZ_CD = #{bizCd}
+    </select>
+
+    <insert id="mergeBiz">
+        INSERT INTO TB_CO_NOTICE_BIZ (BIZ_CD, BIZ_NM, SORT_ORD, USE_YN, UPD_AT, UPD_BY)
+        VALUES (#{bizCd}, #{bizNm}, #{sortOrd}, #{useYn}, #{updAt}, #{updBy})
+        ON DUPLICATE KEY UPDATE
+            BIZ_NM = VALUES(BIZ_NM), SORT_ORD = VALUES(SORT_ORD), USE_YN = VALUES(USE_YN), UPD_AT = VALUES(UPD_AT), UPD_BY = VALUES(UPD_BY)
+    </insert>
+
+    <select id="selectProductTargets" resultType="com.example.demojsp.common.notice.dto.NoticeTargetDto">
+        SELECT 'PRODUCT' AS SCOPE_CD, PRODUCT_CD AS TARGET_CD, PRODUCT_NM AS TARGET_NM
+          FROM TB_PRODUCT
+         ORDER BY PRODUCT_KIND, PRODUCT_NM
+    </select>
+</mapper>

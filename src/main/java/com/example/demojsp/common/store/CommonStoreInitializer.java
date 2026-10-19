@@ -24,7 +24,8 @@ public class CommonStoreInitializer implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(CommonStoreInitializer.class);
     /** 공통모듈 테이블 DDL (순서대로 실행) */
-    static final List<String> SCHEMAS = List.of("schema-common-home.sql", "schema-common-consent.sql", "schema-common-producttab.sql");
+    static final List<String> SCHEMAS = List.of("schema-common-home.sql", "schema-common-consent.sql", "schema-common-producttab.sql",
+            "schema-common-notice.sql");
 
     private final DataSource dataSource;
     private final CommonStoreProperties properties;
