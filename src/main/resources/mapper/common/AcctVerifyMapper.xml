@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- [CF-BC-06 / 공통#25] 1원 계좌인증  -  테이블: schema-common-acctverify.sql (+ 기존 TB_BANK_CODE, TB_LOAN_ACCOUNT) -->
+<mapper namespace="com.example.demojsp.common.acctverify.mapper.AcctVerifyMapper">
+
+    <sql id="bizCols">
+        BIZ_CD, BIZ_NM, SCREEN_TYPE, PREFILL_YN, OWNER_CHECK_YN, MEMO_PREFIX, CODE_VALID_MIN, MAX_TRY, RESULT_VALID_MIN, USE_YN, UPD_AT, UPD_BY
+    </sql>
+
+    <sql id="reqCols">
+        r.REQ_NO, r.BIZ_CD, r.CHANNEL, r.CUST_ID, r.SESS_KEY, r.CUST_NM, r.BANK_CD, r.BANK_NM, r.ACCT_NO, r.ACCT_MASK, r.HOLDER_NM,
+        r.SOURCE, r.PREFILL_ID, r.MODIFIED_YN, r.PROVIDER_TX, r.CODE_HASH, r.TRY_CNT, r.EXPIRE_AT, r.STATUS, r.RESULT_CD,
+        r.CLIENT_IP, r.REQ_AT, r.DONE_AT
+    </sql>
+
+    <!-- ================================================================ 업무 Context -->
+    <select id="selectBiz" resultType="com.example.demojsp.common.acctverify.dto.AvBizDto">
+        SELECT <include refid="bizCols"/> FROM TB_CO_ACCT_BIZ WHERE BIZ_CD = #{bizCd}
+    </select>
+
+    <select id="selectBizList" resultType="com.example.demojsp.common.acctverify.dto.AvBizDto">
+        SELECT <include refid="bizCols"/> FROM TB_CO_ACCT_BIZ ORDER BY SCREEN_TYPE DESC, BIZ_CD
+    </select>
+
+    <insert id="mergeBiz">
+        INSERT INTO TB_CO_ACCT_BIZ (<include refid="bizCols"/>)
+        VALUES (#{bizCd}, #{bizNm}, #{screenType}, #{prefillYn}, #{ownerCheckYn}, #{memoPrefix}, #{codeValidMin}, #{maxTry},
+                #{resultValidMin}, #{useYn}, #{updAt}, #{updBy})
+        ON DUPLICATE KEY UPDATE
+            BIZ_NM = VALUES(BIZ_NM), SCREEN_TYPE = VALUES(SCREEN_TYPE), PREFILL_YN = VALUES(PREFILL_YN), OWNER_CHECK_YN = VALUES(OWNER_CHECK_YN),
+            MEMO_PREFIX = VALUES(MEMO_PREFIX), CODE_VALID_MIN = VALUES(CODE_VALID_MIN), MAX_TRY = VALUES(MAX_TRY),
+            RESULT_VALID_MIN = VALUES(RESULT_VALID_MIN), USE_YN = VALUES(USE_YN), UPD_AT = VALUES(UPD_AT), UPD_BY = VALUES(UPD_BY)
+    </insert>
+
+    <!-- ================================================================ 기존 기준정보 · 업무 데이터 -->
+    <select id="selectBanks" resultType="com.example.demojsp.common.acctverify.dto.AvBankDto">
+        SELECT BANK_CD, BANK_NM FROM TB_BANK_CODE WHERE USE_YN = 'Y' ORDER BY SORT_ORDER, BANK_CD
+    </select>
+
+    <select id="selectBank" resultType="com.example.demojsp.common.acctverify.dto.AvBankDto">
+        SELECT BANK_CD, BANK_NM FROM TB_BANK_CODE WHERE BANK_CD = #{bankCd} AND USE_YN = 'Y'
+    </select>
+
+    <select id="selectLoanAccounts" resultType="map">
+        SELECT LOAN_NO, PRODUCT_NM, BANK_CD, BANK_NM, ACCOUNT_NO, ACCOUNT_TYPE
+          FROM TB_LOAN_ACCOUNT
+         WHERE MEMBER_ID = #{memberId}
+         ORDER BY REG_DT DESC, LOAN_NO DESC
+    </select>
+
+    <select id="selectLoanAccount" resultType="map">
+        SELECT LOAN_NO, PRODUCT_NM, BANK_CD, BANK_NM, ACCOUNT_NO, ACCOUNT_TYPE
+          FROM TB_LOAN_ACCOUNT
+         WHERE MEMBER_ID = #{memberId} AND LOAN_NO = #{loanNo}
+    </select>
+
+    <select id="countBanks" resultType="int">SELECT COUNT(*) FROM TB_BANK_CODE</select>
+
+    <select id="countLoanAccounts" resultType="int">SELECT COUNT(*) FROM TB_LOAN_ACCOUNT</select>
+
+    <!-- ================================================================ 요청 · 결과 -->
+    <insert id="insertReq">
+        INSERT INTO TB_CO_ACCT_VERIFY (REQ_NO, BIZ_CD, CHANNEL, CUST_ID, SESS_KEY, CUST_NM, BANK_CD, BANK_NM, ACCT_NO, ACCT_MASK, HOLDER_NM,
+                                       SOURCE, PREFILL_ID, MODIFIED_YN, PROVIDER_TX, CODE_HASH, TRY_CNT, EXPIRE_AT, STATUS, RESULT_CD,
+                                       CLIENT_IP, REQ_AT, DONE_AT)
+        VALUES (#{reqNo}, #{bizCd}, #{channel}, #{custId}, #{sessKey}, #{custNm}, #{bankCd}, #{bankNm}, #{acctNo}, #{acctMask}, #{holderNm},
+                #{source}, #{prefillId}, #{modifiedYn}, #{providerTx}, #{codeHash}, 0, #{expireAt}, #{status}, #{resultCd},
+                #{clientIp}, #{reqAt}, #{doneAt})
+    </insert>
+
+    <select id="selectReq" resultType="com.example.demojsp.common.acctverify.dto.AvReqDto">
+        SELECT <include refid="reqCols"/>, b.BIZ_NM, b.SCREEN_TYPE
+          FROM TB_CO_ACCT_VERIFY r
+          LEFT JOIN TB_CO_ACCT_BIZ b ON b.BIZ_CD = r.BIZ_CD
+         WHERE r.REQ_NO = #{reqNo}
+    </select>
+
+    <update id="increaseTry">
+        UPDATE TB_CO_ACCT_VERIFY SET TRY_CNT = TRY_CNT + 1 WHERE REQ_NO = #{reqNo} AND STATUS = 'SENT'
+    </update>
+
+    <update id="updateResult">
+        UPDATE TB_CO_ACCT_VERIFY SET STATUS = #{status}, RESULT_CD = #{resultCd}, DONE_AT = #{doneAt}
+         WHERE REQ_NO = #{reqNo} AND STATUS = 'SENT'
+    </update>
+
+    <select id="countRecentBySession" resultType="int">
+        SELECT COUNT(*) FROM TB_CO_ACCT_VERIFY WHERE SESS_KEY = #{sessKey} AND REQ_AT &gt;= #{since}
+    </select>
+
+    <select id="selectReqList" resultType="com.example.demojsp.common.acctverify.dto.AvReqDto">
+        SELECT <include refid="reqCols"/>, b.BIZ_NM, b.SCREEN_TYPE
+          FROM TB_CO_ACCT_VERIFY r
+          LEFT JOIN TB_CO_ACCT_BIZ b ON b.BIZ_CD = r.BIZ_CD
+        <where>
+            <if test="bizCd != null">AND r.BIZ_CD = #{bizCd}</if>
+            <if test="status != null">AND r.STATUS = #{status}</if>
+        </where>
+         ORDER BY r.REQ_AT DESC
+         LIMIT #{limit}
+    </select>
+</mapper>

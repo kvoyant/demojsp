@@ -445,6 +445,20 @@ common:
     admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
 
 # =============================================================================
+# [CF-BC-06 / 공통#25] 1원 계좌인증 - DB 방식 (com.example.demojsp.common.acctverify) - REQ-AP-605
+#  - 업무 Context(화면 종류 LOAN/COMMON · 대출계좌 자동완성 · 예금주 확인 · 입금자명 접두어 · 시간 · 횟수)는 DB
+#    (schema-common-acctverify.sql → TB_CO_ACCT_BIZ) - 디지털어드민에서 변경
+#  - 기존 1원 인증 구현(domain/accountcert)은 그대로 둔다.
+#  - 사용자 화면: /common/acct-verify/sample   어드민: /common/acct-verify/admin
+# =============================================================================
+  acct-verify:
+    gateway: mock                 # mock = 펌뱅킹 시뮬레이터 (계약 후 실연동 구현체로 교체)
+    expose-test-code: true        # local 전용! 입금자명 숫자 4자리를 응답에 포함 - 운영 false
+    demo-api-open: true           # local 전용! ?demoCustomer=&demoName= 으로 샘플 고객 전환 - 운영 false
+    max-requests-per10-min: 5     # 같은 세션 10분 내 1원 송금 상한 (송금 비용·계좌 조회 남용 방지)
+    admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+
+# =============================================================================
 # [공통#51] 저축 탭 메인 콘텐츠 (com.example.demojsp.common.savings) - 계좌 미보유 대상
 #  [계좌 개설하기] → 상품 원장(common.product)의 입출금통장 상품안내페이지 (ADMIN 변경 자동 반영)
 # =============================================================================
@@ -800,3 +814,21 @@ common:
           - { label: "사용자 화면", url: "/common/niceid/sample", type: PAGE }
           - { label: "어드민 정책·이력", url: "/common/niceid/admin", type: PAGE }
           - { label: "회원가입 정책 API", url: "/api/common/niceid/purposes/SIGN_UP", type: API }
+      - cf-id: CF-BC-06
+        req-id: 공통#25 (REQ-AP-605)
+        title: 1원 계좌인증 - DB 방식 (업무 Context 화면 분리 · 대출계좌 자동완성·수정)
+        category: 공통 요구사항 > 본인인증
+        status: 개발완료
+        requested-at: "2026-09-15"
+        channels: [APP, PC WEB, 모집인WEB, ADMIN]
+        features:
+          - "1원 인증 서비스는 하나, 업무 Context(DB)로 화면 분리: LOAN 대출 입출금계좌용 / COMMON 타 업무 공통"
+          - "LOAN: 대출금 입금/출금계좌 자동완성 (마스킹 표시, 서버가 대출 원장에서 다시 읽음) → [다른 계좌로 수정] 직접 입력"
+          - "예금주 본인 명의 확인 → 1원 송금 (입금자명 '페퍼'+4자리) → 숫자 입력, 오입력 횟수·유효시간·과다요청 제한"
+          - "고객 실명: 로그인 회원 / 비로그인은 공통#21 본인인증 결과 연동, 업무 서버는 checkVerified 로 전체 계좌번호 수신"
+          - "인증 이력 DB 저장 (자동완성/직접입력/수정 구분 · 실패 사유), 기존 1원 인증 구현 유지"
+        guide: docs/COMMON_ACCTVERIFY_GUIDE.md
+        links:
+          - { label: "사용자 화면", url: "/common/acct-verify/sample", type: PAGE }
+          - { label: "어드민 업무 Context·이력", url: "/common/acct-verify/admin", type: PAGE }
+          - { label: "대출 실행 Context API", url: "/api/common/acct-verify/context/LOAN_DISBURSE?demoCustomer=customer01&demoName=홍길동", type: API }

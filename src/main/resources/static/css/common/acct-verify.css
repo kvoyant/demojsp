@@ -1,0 +1,76 @@
+/*
+ * =============================================================================
+ *  [CF-BC-06 / 공통#25] 1원 계좌인증  -  /css/common/acct-verify.css
+ *  약관동의 · 본인인증(nice-id.css)과 같은 레이어 모양, ui-tokens.css 색상
+ *  접두어 avf- 로 기존 화면 CSS 와 충돌 방지. APP: 화면 전체 / PC: 가운데 480px 패널
+ * =============================================================================
+ */
+body.avf-open { overflow: hidden; }
+.avf-layer {
+    position: fixed; inset: 0; z-index: 1990; background: var(--ui-dim, rgba(17, 24, 39, .56));
+    display: flex; justify-content: center; align-items: stretch;
+    font-family: var(--ui-font, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif); color: var(--ui-text, #111827);
+}
+.avf-panel { position: relative; width: 100%; max-width: 480px; background: var(--ui-surface, #fff); display: flex; flex-direction: column; height: 100%; }
+@media (min-width: 600px) {
+    .avf-layer { align-items: center; }
+    .avf-panel { height: min(760px, 92vh); border-radius: 16px; overflow: hidden; }
+}
+.avf-head { display: flex; align-items: center; gap: 4px; min-height: 56px; padding: 0 8px; border-bottom: 1px solid var(--ui-surface-sub, #f3f4f6); flex: none; }
+.avf-head-title { flex: 1; margin: 0; font-size: 1.0625rem; font-weight: 700; outline: none; color: var(--ui-text, #111827); }
+.avf-icon-btn { width: 44px; height: 44px; border: 0; background: none; font-size: 1.75rem; line-height: 1; color: inherit; border-radius: 8px; cursor: pointer; }
+.avf-body { flex: 1; overflow-y: auto; padding: 20px 20px 24px; }
+.avf-biz { margin: 0 0 4px; font-size: .8125rem; font-weight: 700; color: var(--ui-primary, #0d47a1); }
+.avf-title { margin: 0 0 12px; font-size: 1.375rem; font-weight: 800; line-height: 1.35; white-space: pre-line; color: var(--ui-text, #111827); }
+.avf-title.center { text-align: center; }
+.avf-note { margin: 0 0 18px; font-size: .875rem; color: var(--ui-text-sub, #4b5563); line-height: 1.6; word-break: keep-all; }
+.avf-result { margin: 0 0 20px; text-align: center; font-size: 1rem; line-height: 1.7; word-break: keep-all; }
+.avf-error { margin: 8px 0; padding: 10px 12px; border-radius: 10px; background: #fdecea; color: var(--ui-error, #c62828); font-size: .875rem; }
+.avf-error[hidden] { display: none; }
+.avf-demo { margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px; background: #fff8e1; color: #92400e; font-size: .8125rem; }
+
+/* ---- 대출계좌 자동완성 */
+.avf-prefills { display: grid; gap: 10px; margin-bottom: 8px; }
+.avf-prefill {
+    display: grid; gap: 4px; text-align: left; width: 100%; padding: 14px 16px; border: 1px solid var(--ui-line, #d1d5db); border-radius: 12px;
+    background: #fff; font: inherit; color: inherit; cursor: pointer;
+}
+.avf-prefill.on { border: 2px solid var(--ui-primary, #0d47a1); padding: 13px 15px; background: var(--ui-primary-soft, #e3ecfa); }
+.avf-prefill-bank { font-size: 1.0625rem; font-weight: 700; letter-spacing: .01em; }
+.avf-prefill-sub { font-size: .8125rem; color: var(--ui-text-sub, #4b5563); }
+
+/* ---- 입력 */
+.avf-field { position: relative; display: block; margin-bottom: 16px; }
+.avf-label { display: block; font-size: .8125rem; color: var(--ui-text-sub, #4b5563); margin-bottom: 6px; }
+.avf-input {
+    width: 100%; box-sizing: border-box; height: 52px; padding: 0 14px; border: 1px solid var(--ui-line, #d1d5db); border-radius: 12px;
+    font: inherit; font-size: 1.0625rem; color: inherit; background: #fff;
+}
+.avf-input:focus { outline: none; border-color: var(--ui-primary, #0d47a1); box-shadow: 0 0 0 3px var(--ui-primary-soft, #e3ecfa); }
+.avf-code { letter-spacing: .4em; font-weight: 700; }
+.avf-code:placeholder-shown { letter-spacing: normal; font-weight: 400; }
+.avf-hint { display: block; margin-top: 6px; font-size: .75rem; color: var(--ui-text-sub, #4b5563); }
+.avf-timer { position: absolute; right: 14px; top: 42px; font-size: .875rem; font-weight: 700; color: var(--ui-error, #c62828); }
+.avf-link { border: 0; background: none; padding: 6px 0; font: inherit; font-size: .875rem; color: var(--ui-primary, #0d47a1); text-decoration: underline; cursor: pointer; }
+
+/* ---- 1원 보낸 계좌 · 입금자명 */
+.avf-sent { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 14px; padding: 16px 18px; border-radius: 14px; background: var(--ui-surface-sub, #f3f4f6); margin-bottom: 12px; }
+.avf-sent-label { font-size: .8125rem; color: var(--ui-text-sub, #4b5563); align-self: center; }
+.avf-sent-value { font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
+.avf-memo { font-size: 1.125rem; }
+.avf-memo-code { margin-left: 2px; padding: 0 6px; border-radius: 6px; background: var(--ui-primary, #0d47a1); color: var(--ui-on-primary, #fff); letter-spacing: .08em; }
+
+/* ---- 결과 */
+.avf-icon { width: 64px; height: 64px; margin: 24px auto 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #fff; }
+.avf-icon.ok { background: var(--ui-primary, #0d47a1); }
+.avf-icon.fail { background: var(--ui-error, #c62828); }
+
+/* ---- 버튼 */
+.avf-foot { flex: none; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); }
+.avf-btn {
+    display: block; width: 100%; height: 54px; border: 0; border-radius: 12px; font: inherit; font-size: 1.0625rem; font-weight: 700; cursor: pointer;
+    background: var(--ui-primary, #0d47a1); color: var(--ui-on-primary, #fff); text-align: center;
+}
+.avf-btn.sub { background: var(--ui-primary-soft, #e3ecfa); color: var(--ui-primary, #0d47a1); }
+.avf-btn:disabled { background: var(--ui-disabled-bg, #e5e7eb); color: var(--ui-text-disabled, #566070); cursor: not-allowed; }
+.avf-btn:focus-visible, .avf-icon-btn:focus-visible, .avf-link:focus-visible, .avf-prefill:focus-visible { outline: none; box-shadow: var(--ui-focus-ring, 0 0 0 3px #1d70e8); }
