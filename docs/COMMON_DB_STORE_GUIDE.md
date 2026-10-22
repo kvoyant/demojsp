@@ -38,6 +38,7 @@ common:
 | `TB_CO_NOTICE` · `TB_CO_NOTICE_TYPE` · `TB_CO_NOTICE_BIZ` | 공지사항 - `schema-common-notice.sql` ([COMMON_NOTICE_GUIDE.md](COMMON_NOTICE_GUIDE.md)) | 28 |
 | `TB_CO_IDV_PURPOSE` · `TB_CO_IDV_REQ` (+기존 `TB_WATCHLIST`) | 휴대폰 본인인증 NICE ID - `schema-common-niceid.sql` ([COMMON_NICEID_GUIDE.md](COMMON_NICEID_GUIDE.md)) | 21 |
 | `TB_CO_ACCT_BIZ` · `TB_CO_ACCT_VERIFY` (+기존 `TB_BANK_CODE` · `TB_LOAN_ACCOUNT`) | 1원 계좌인증 - `schema-common-acctverify.sql` ([COMMON_ACCTVERIFY_GUIDE.md](COMMON_ACCTVERIFY_GUIDE.md)) | 25 |
+| `TB_LNK_PARTNER` · `TB_LNK_PRODUCT` · `TB_LNK_PARTNER_PRD` · `TB_LNK_CODE_MAP` · `TB_LNK_LIMIT_REQ` | 플랫폼 대출 연계 - `schema-common-platformlink.sql` ([COMMON_PLATFORM_LINK_GUIDE.md](COMMON_PLATFORM_LINK_GUIDE.md)) | 1 |
 
 매퍼: `src/main/resources/mapper/common/*.xml`, 인터페이스 `com.example.demojsp.common.*.mapper` (`@MapperScan` 추가).
 저장소 구현은 `common.store.type` 으로 하나만 등록된다 (`MyBatis*Repository` ↔ `InMemory*Repository`). 서비스·API·화면은 변경 없음.

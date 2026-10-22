@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [공통#1 REQ-AP-074] 플랫폼 대출 연계 - schema-common-platformlink.sql -->
+<mapper namespace="com.example.demojsp.common.platformlink.mapper.PlatformLinkMapper">
+
+    <sql id="partnerCols">
+        PARTNER_CD, PARTNER_NM, ADAPTER_CD, CSS_ENGINE, PRODUCTS, TIMEOUT_MS, MARGIN_MS, ALLOW_IPS, SECRET_REF, USE_YN, UPD_AT, UPD_BY
+    </sql>
+
+    <select id="selectPartner" resultType="com.example.demojsp.common.platformlink.dto.LnkPartnerDto">
+        SELECT <include refid="partnerCols"/> FROM TB_LNK_PARTNER WHERE PARTNER_CD = #{partnerCd}
+    </select>
+
+    <select id="selectPartners" resultType="com.example.demojsp.common.platformlink.dto.LnkPartnerDto">
+        SELECT <include refid="partnerCols"/> FROM TB_LNK_PARTNER ORDER BY USE_YN DESC, PARTNER_CD
+    </select>
+
+    <!-- 운영 중 바꾸는 값만 수정 (어댑터·서명키 참조는 배포와 함께 바뀌는 값이라 제외) -->
+    <update id="updatePartner">
+        UPDATE TB_LNK_PARTNER
+           SET CSS_ENGINE = #{cssEngine}, PRODUCTS = #{products}, TIMEOUT_MS = #{timeoutMs}, MARGIN_MS = #{marginMs},
+               ALLOW_IPS = #{allowIps}, USE_YN = #{useYn}, UPD_AT = #{updAt}, UPD_BY = #{updBy}
+         WHERE PARTNER_CD = #{partnerCd}
+    </update>
+
+    <select id="selectProduct" resultType="com.example.demojsp.common.platformlink.dto.LnkProductDto">
+        SELECT CSS_PRODUCT, PRODUCT_CD, PRODUCT_NM, ADMIN_LIST, USE_YN FROM TB_LNK_PRODUCT WHERE CSS_PRODUCT = #{cssProduct}
+    </select>
+
+    <select id="selectProducts" resultType="com.example.demojsp.common.platformlink.dto.LnkProductDto">
+        SELECT CSS_PRODUCT, PRODUCT_CD, PRODUCT_NM, ADMIN_LIST, USE_YN FROM TB_LNK_PRODUCT ORDER BY CSS_PRODUCT
+    </select>
+
+    <select id="selectOuterPrdCd" resultType="string">
+        SELECT OUTER_PRD_CD FROM TB_LNK_PARTNER_PRD WHERE PARTNER_CD = #{partnerCd} AND CSS_PRODUCT = #{cssProduct}
+    </select>
+
+    <select id="selectCodeMap" resultType="com.example.demojsp.common.platformlink.dto.LnkCodeMapDto">
+        SELECT PARTNER_CD, INNER_CD, OUTER_CD, OUTER_MSG FROM TB_LNK_CODE_MAP WHERE PARTNER_CD = #{partnerCd} AND INNER_CD = #{innerCd}
+    </select>
+
+    <select id="selectCodeMaps" resultType="com.example.demojsp.common.platformlink.dto.LnkCodeMapDto">
+        SELECT PARTNER_CD, INNER_CD, OUTER_CD, OUTER_MSG FROM TB_LNK_CODE_MAP WHERE PARTNER_CD = #{partnerCd} ORDER BY INNER_CD
+    </select>
+
+    <insert id="insertReq">
+        INSERT INTO TB_LNK_LIMIT_REQ (LNK_REQ_NO, PARTNER_CD, PARTNER_REQ_NO, CSS_PRODUCT, CI_HASH, CUST_NM_MASK, ANNUAL_INCOME,
+                                      STATUS, CLIENT_IP, REQ_AT)
+        VALUES (#{lnkReqNo}, #{partnerCd}, #{partnerReqNo}, #{cssProduct}, #{ciHash}, #{custNmMask}, #{annualIncome},
+                #{status}, #{clientIp}, #{reqAt})
+    </insert>
+
+    <update id="updateReq">
+        UPDATE TB_LNK_LIMIT_REQ
+           SET CSS_PRODUCT = #{cssProduct}, CSS_ENGINE = #{cssEngine}, STATUS = #{status}, RESULT_CD = #{resultCd}, OUTER_CD = #{outerCd},
+               LIMIT_AMT = #{limitAmt}, RATE_BP = #{rateBp}, CSS_TX_NO = #{cssTxNo}, CSS_MS = #{cssMs}, TOTAL_MS = #{totalMs},
+               SHADOW_RESULT = #{shadowResult}, RES_BODY = #{resBody}, RES_AT = #{resAt}
+         WHERE LNK_REQ_NO = #{lnkReqNo}
+    </update>
+
+    <sql id="reqCols">
+        r.LNK_REQ_NO, r.PARTNER_CD, r.PARTNER_REQ_NO, r.CSS_PRODUCT, r.CI_HASH, r.CUST_NM_MASK, r.ANNUAL_INCOME, r.CSS_ENGINE, r.STATUS,
+        r.RESULT_CD, r.OUTER_CD, r.LIMIT_AMT, r.RATE_BP, r.CSS_TX_NO, r.CSS_MS, r.TOTAL_MS, r.SHADOW_RESULT, r.RES_BODY, r.CLIENT_IP,
+        r.REQ_AT, r.RES_AT
+    </sql>
+
+    <select id="selectReqByPartnerReq" resultType="com.example.demojsp.common.platformlink.dto.LnkReqDto">
+        SELECT <include refid="reqCols"/> FROM TB_LNK_LIMIT_REQ r WHERE r.PARTNER_CD = #{partnerCd} AND r.PARTNER_REQ_NO = #{partnerReqNo}
+    </select>
+
+    <select id="selectReqList" resultType="com.example.demojsp.common.platformlink.dto.LnkReqDto">
+        SELECT <include refid="reqCols"/>, p.PARTNER_NM, p.TIMEOUT_MS
+          FROM TB_LNK_LIMIT_REQ r
+          LEFT JOIN TB_LNK_PARTNER p ON p.PARTNER_CD = r.PARTNER_CD
+        <where>
+            <if test="partnerCd != null">AND r.PARTNER_CD = #{partnerCd}</if>
+            <if test="status != null">AND r.STATUS = #{status}</if>
+            <if test="resultCd != null">AND r.RESULT_CD = #{resultCd}</if>
+        </where>
+         ORDER BY r.REQ_AT DESC
+         LIMIT #{limit}
+    </select>
+
+    <select id="selectStats" resultType="com.example.demojsp.common.platformlink.dto.LnkStatDto">
+        SELECT p.PARTNER_CD, p.PARTNER_NM, p.TIMEOUT_MS,
+               COUNT(r.LNK_REQ_NO)                                              AS TOTAL,
+               SUM(CASE WHEN r.RESULT_CD = 'APPROVED' THEN 1 ELSE 0 END)        AS APPROVED,
+               SUM(CASE WHEN r.RESULT_CD = 'REJECTED' THEN 1 ELSE 0 END)        AS REJECTED,
+               SUM(CASE WHEN r.STATUS = 'FAILED' THEN 1 ELSE 0 END)             AS FAILED,
+               SUM(CASE WHEN r.RESULT_CD = 'TIMEOUT' THEN 1 ELSE 0 END)         AS TIMEOUTS,
+               CAST(AVG(r.TOTAL_MS) AS INT)                                     AS AVG_MS,
+               MAX(r.TOTAL_MS)                                                  AS MAX_MS,
+               SUM(CASE WHEN r.TOTAL_MS &gt; p.TIMEOUT_MS THEN 1 ELSE 0 END)    AS OVER_TIMEOUT
+          FROM TB_LNK_PARTNER p
+          LEFT JOIN TB_LNK_LIMIT_REQ r ON r.PARTNER_CD = p.PARTNER_CD AND r.REQ_AT &gt;= #{since}
+         GROUP BY p.PARTNER_CD, p.PARTNER_NM, p.TIMEOUT_MS
+         ORDER BY p.PARTNER_CD
+    </select>
+</mapper>

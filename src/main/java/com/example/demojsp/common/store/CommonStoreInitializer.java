@@ -26,7 +26,7 @@ public class CommonStoreInitializer implements ApplicationRunner {
     /** 공통모듈 테이블 DDL (순서대로 실행) */
     static final List<String> SCHEMAS = List.of("schema-common-home.sql", "schema-common-consent.sql", "schema-common-producttab.sql",
             "schema-common-notice.sql", "schema-common-niceid.sql",
-            "schema-common-acctverify.sql");
+            "schema-common-acctverify.sql", "schema-common-platformlink.sql");
 
     private final DataSource dataSource;
     private final CommonStoreProperties properties;

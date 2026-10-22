@@ -459,6 +459,28 @@ common:
     admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
 
 # =============================================================================
+# [CF-TC-07 · CF-TC-02 · CF-BC-10 / 공통#1 REQ-AP-074] 플랫폼 대출 연계 - 한도조회 (com.example.demojsp.common.platformlink)
+#  - 제휴사 전문은 그대로, 안쪽 한도조회 엔진만 신규 CSS 로 교체 (LEGACY → SHADOW → NEW, ADMIN 에서 제휴사별 전환)
+#  - 제휴사별 값(엔진·제한시간·허용상품·결과코드)은 DB (schema-common-platformlink.sql). 여기는 기술값만.
+#  - 수신 창구: POST /api/link/platform/{제휴사}/limit   샘플: /common/platform-link/sample   어드민: /common/platform-link/admin
+# =============================================================================
+  platform-link:
+    secrets:                      # TB_LNK_PARTNER.SECRET_REF → 서명키. 운영은 반드시 환경변수: TOSS: ${LINK_SECRET_TOSS}
+      TOSS: local-toss-secret
+      KAKAOPAY: local-kakaopay-secret
+      FINDA: local-finda-secret
+      NAVERFIN: local-naverfin-secret
+    signature-skew-sec: 300       # 서명 타임스탬프 허용 오차 (재전송 공격 방지)
+    css-pool-size: 16             # CSS 호출 스레드 수
+    circuit-failures: 5           # 엔진 연속 실패 n 회 → 차단기 열림 (CSS 호출 생략, 즉시 일시오류 응답)
+    circuit-open-sec: 30          # 차단기 열림 유지(초)
+    legacy-latency-ms: 400        # [시뮬레이터] 현행 CSS 응답시간
+    new-latency-ms: 150           # [시뮬레이터] 신규 CSS 응답시간
+    slow-latency-ms: 8000         # [시뮬레이터] 고객명에 '지연' → 이만큼 지연 (타임아웃 시험)
+    demo-api-open: true           # local 전용! 샘플 화면 "제휴사 흉내" API (서버가 서명 대행) - 운영 false
+    admin-api-open: true          # local 테스트 전용! 운영: false (ROLE_ADMIN 세션 필요)
+
+# =============================================================================
 # [공통#51] 저축 탭 메인 콘텐츠 (com.example.demojsp.common.savings) - 계좌 미보유 대상
 #  [계좌 개설하기] → 상품 원장(common.product)의 입출금통장 상품안내페이지 (ADMIN 변경 자동 반영)
 # =============================================================================
@@ -832,3 +854,21 @@ common:
           - { label: "사용자 화면", url: "/common/acct-verify/sample", type: PAGE }
           - { label: "어드민 업무 Context·이력", url: "/common/acct-verify/admin", type: PAGE }
           - { label: "대출 실행 Context API", url: "/api/common/acct-verify/context/LOAN_DISBURSE?demoCustomer=customer01&demoName=홍길동", type: API }
+      - cf-id: CF-TC-07
+        req-id: 공통#1 (REQ-AP-074)
+        title: 플랫폼 대출 연계 - 한도조회 (제휴 전문 유지 · 신규 CSS 전환)
+        category: 공통 요구사항 > 대외 연계
+        status: 개발완료
+        requested-at: "2026-09-09"
+        channels: [제휴 플랫폼, Back-end, ADMIN]
+        features:
+          - "제휴사(토스·카카오페이·핀다) 전문은 그대로 수신, 제휴사별 어댑터가 공통모델로 변환 (만원→원, 날짜·직업코드 통일)"
+          - "한도조회 엔진 전환: LEGACY(현행) → SHADOW(현행 응답 + 신규 병행비교) → NEW(신규 CSS), ADMIN 에서 제휴사별 즉시 전환·원복"
+          - "제휴사 제한시간 안 응답 보장: 남은 시간만큼만 CSS 대기, 초과 시 타임아웃 코드 응답 · 연속 장애 시 차단기"
+          - "HMAC 서명·타임스탬프·허용 IP 인증, 같은 요청번호 재전송 시 저장된 응답 재사용 (CSS 재호출 없음)"
+          - "결과코드 제휴사별 변환표(DB), 상품 결정(차량→오토 / 담보→모기지 / 신용), 이력·처리현황(CI 해시·이름 마스킹)"
+        guide: docs/COMMON_PLATFORM_LINK_GUIDE.md
+        links:
+          - { label: "제휴사 시뮬레이터", url: "/common/platform-link/sample", type: PAGE }
+          - { label: "어드민 연계 운영", url: "/common/platform-link/admin", type: PAGE }
+          - { label: "처리현황 API", url: "/api/common/platform-link-admin/stats", type: API }
